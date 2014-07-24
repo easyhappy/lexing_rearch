@@ -131,7 +131,7 @@ class PdfAnalyzer
       end
       
       page_line = @current_page.lines.last
-      if same_line? page_line.height, char.y
+      if same_line? page_line.height, char.y and page_line.end_position < char.x
         column = page_line.columns.last
         if column.font_size == char.font_size
           column << char
@@ -145,7 +145,6 @@ class PdfAnalyzer
       end
       new_page_line char
     end
-    merge_page_lines
   end
 
   def same_line? h1, h2
@@ -174,8 +173,9 @@ class PdfAnalyzer
     return [] if @current_page.lines.empty?
     
     lines = []
-    return lines if char.text.bytesize == 3
-    return lines if same_rank?(@current_page.lines.last.begin_position, char.x)
+    return lines if char.text.bytesize == 3 and char.text != '，'
+    return [] if char.text == '-'
+    #return lines if same_rank?(@current_page.lines.last.begin_position, char.x)
     @current_page.lines.each do |line|
       lines << line if same_line?(line.height, char.y) 
     end
@@ -184,6 +184,7 @@ class PdfAnalyzer
 
   def insert_char_to_lines char, lines
     page_count = @current_page.analyze_children_page_count
+    middle_width = @current_page.width/page_count
 
     lines.each_with_index do |line, line_index|
       line.columns.each_with_index do |column, index|
@@ -194,17 +195,34 @@ class PdfAnalyzer
             line.columns.insert(index, ContentColumn.new(char))
           end
           return
-        else
         end
       end
       #binding.pry  if line_index ==1 
-      if char.x < @current_page.width/page_count
+      if char.x < middle_width
         if line.columns.last.font_size == char.font_size
           line.columns.last << char
         else
           line << ContentColumn.new(char)
         end
         return
+      end
+      
+      last_position = line.columns.last.last_position
+      begin_position = line.begin_position
+      if char.x > middle_width and char.x > last_position and last_position > middle_width
+        if line.columns.last.font_size == char.font_size
+          line.columns.last << char
+        else
+          line << ContentColumn.new(char)
+        end
+        return
+      end
+
+      if char.x > middle_width and lines.size == 1
+        page_line = PageLine.new(char)
+        column = ContentColumn.new(char)
+        page_line << column
+        @current_page << page_line
       end
     end
   end
@@ -249,5 +267,7 @@ get '/' do
   page_number = params[:page] || 2
   analyzer.analyzer_page_with_number page_number.to_i - 1
   @current_page = analyzer.current_page
+  #@characters = analyzer.instance_variable_get :@characters
+  @characters = []
   slim :index
 end
