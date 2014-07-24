@@ -3,6 +3,8 @@ require 'pry'
 require 'sinatra'
 require 'rack'
 require 'slim'
+require 'linguo'
+require 'fileutils'
 
 module PDF
   class Reader
@@ -12,20 +14,51 @@ module PDF
         walk(receiver)
         receiver
       end
+      def width
+        @attributes[:MediaBox][2] - @attributes[:MediaBox][0]
+      end
+
+      def height
+        @attributes[:MediaBox][3] - @attributes[:MediaBox][1]
+      end
     end
   end
 end
 
 class Page
-  attr_accessor :page_number, :page_title, :lines
-
-  def initialize(page_number)
-    page_number = page_number
+  attr_accessor :page_number, :page_title, :lines, :page_types, :children_page_count, :origin_page
+  def initialize(page)
+    @origin_page = page
+    @page_number = page.number
     @lines = []
+    @page_types = Set.new
   end
 
   def << page_line
     @lines << page_line
+  end
+
+  def is_catalog?
+    @page_types.include?(:catalog)
+  end
+
+  def width
+    origin_page.width
+  end
+
+  def height
+    origin_page.height
+  end
+
+  def analyze_children_page_count
+    return @children_page_count if @children_page_count
+
+    positions = self.lines.map(&:begin_position).map(&:to_i)
+    if positions.max - positions.min > 200
+      @children_page_count = 2
+    else
+      @children_page_count = 1
+    end
   end
 end
 
@@ -35,6 +68,7 @@ class PageLine
     @columns = []
     @begin_position = char.x
     @height         = char.y
+    @end_position   = char.x
   end
 
   def <=> other
@@ -46,15 +80,26 @@ class PageLine
 end
 
 class ContentColumn
-  attr_accessor :font_size, :width, :text
+  attr_accessor :font_size, :width, :text, :last_position, :type, :begin_position
   def initialize(char)
     @text = char.text
     @font_size = char.font_size
     @width     = char.width
+    @last_position = char.x
+    @begin_position = char.x
   end
 
-  def << text
-    @text += text
+  def << char
+    if is_English_char?(char.text) == 0 and (char.x - @last_position) > 1.5*char.width
+      @text += "  #{char.text}"
+    else
+      @text += char.text
+    end
+    @last_position = char.x
+  end
+
+  def is_English_char?(text)
+    text =~ /[A-Za-z]/
   end
 end
 
@@ -71,8 +116,14 @@ class PdfAnalyzer
     receiver = page.text_receiver
     @characters = receiver.instance_variable_get :@characters
 
-    @current_page = Page.new(page.number)
+    @current_page = Page.new(page)
     @characters.each do |char|
+      if char.x > 850 and char.y > 460
+        #认为是标题
+        @current_page.page_title = @current_page.page_title.to_s + char.text
+        next
+      end
+
       if @current_page.lines.empty?
         #如果还不存在page_lines
         new_page_line char
@@ -80,22 +131,92 @@ class PdfAnalyzer
       end
       
       page_line = @current_page.lines.last
-      if page_line.height == char.y
+      if same_line? page_line.height, char.y
         column = page_line.columns.last
         if column.font_size == char.font_size
-          column << char.text
+          column << char
         else
           column = ContentColumn.new(char)
           page_line << column
         end
+        page_line.begin_position = char.x if page_line.begin_position > char.x 
+        page_line.end_position   = char.x if page_line.end_position < char.x
         next       
       end
-      @current_page.lines.last.end_position = char.x
       new_page_line char
+    end
+    merge_page_lines
+  end
+
+  def same_line? h1, h2
+    (h1 - h2).abs < 8
+  end
+
+  def same_rank? w1, w2
+    (w1 - w2).abs < 16
+  end
+
+  def set_page_type
+    return if @current_page.lines.empty?
+    @current_page.lines.last.columns.each do |column|
+      @current_page.page_types.add :catalog if column.text.include?('............')
+    end
+  end
+
+  def merge_page_lines
+    merge_catalog_page_lines if @current_page.page_types.include?(:catalog)
+  end
+
+  def merge_catalog_page_lines
+  end
+
+  def find_and_same_height_lines char
+    return [] if @current_page.lines.empty?
+    
+    lines = []
+    return lines if char.text.bytesize == 3
+    return lines if same_rank?(@current_page.lines.last.begin_position, char.x)
+    @current_page.lines.each do |line|
+      lines << line if same_line?(line.height, char.y) 
+    end
+    lines
+  end
+
+  def insert_char_to_lines char, lines
+    page_count = @current_page.analyze_children_page_count
+
+    lines.each_with_index do |line, line_index|
+      line.columns.each_with_index do |column, index|
+        if char.x < column.begin_position
+          if index > 0 and line.columns[index-1].font_size == char.font_size
+            line.columns[index-1] << char
+          else
+            line.columns.insert(index, ContentColumn.new(char))
+          end
+          return
+        else
+        end
+      end
+      #binding.pry  if line_index ==1 
+      if char.x < @current_page.width/page_count
+        if line.columns.last.font_size == char.font_size
+          line.columns.last << char
+        else
+          line << ContentColumn.new(char)
+        end
+        return
+      end
     end
   end
 
   def new_page_line char
+    set_page_type
+    lines = find_and_same_height_lines(char)
+    unless lines.empty?
+      insert_char_to_lines char, lines
+      return
+    end
+
     page_line = PageLine.new(char)
     column = ContentColumn.new(char)
     page_line << column
@@ -103,7 +224,6 @@ class PdfAnalyzer
   end
 
   def save_current_page
-
   end
 
   def run
@@ -117,13 +237,17 @@ class PdfAnalyzer
   end
 end
 
-analyzer = PdfAnalyzer.new('demo_1.pdf')
+
 
 Sinatra::Application.reset!
 use Rack::Reloader
+set :slim, :pretty => true
+
 get '/' do
+  FileUtils.cp('../test/demo_1.pdf', 'demo_1.pdf')
+  analyzer = PdfAnalyzer.new('demo_1.pdf')
   page_number = params[:page] || 2
-  analyzer.analyzer_page_with_number page_number.to_i
-  analyzer.current_page
+  analyzer.analyzer_page_with_number page_number.to_i - 1
+  @current_page = analyzer.current_page
   slim :index
 end

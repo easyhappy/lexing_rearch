@@ -1,0 +1,8 @@
+- if @current_page.page_title
+  h3
+  	= @current_page.page_title
+- @current_page.lines.each do |line|
+  - line.columns.each do |column|
+    span style="font-size: #{column.font_size*2}px"
+  	  = column.text
+  br
