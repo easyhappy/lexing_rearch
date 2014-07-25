@@ -14,7 +14,7 @@ module PDF
         walk(receiver)
         receiver
       end
-
+      
       def width
         @attributes[:MediaBox][2] - @attributes[:MediaBox][0]
       end
@@ -116,7 +116,7 @@ class PdfAnalyzer
   def analyzer_page page
     receiver = page.text_receiver
     @characters = receiver.instance_variable_get :@characters
-
+    
     @current_page = Page.new(page)
     @characters.each do |char|
       if char.x > 850 and char.y > 460
