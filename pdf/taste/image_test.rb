@@ -32,6 +32,7 @@ module ExtractImages
         case stream.hash[:Subtype]
         when :Image then
           count += 1
+          puts stream.hash[:Filter]
           case stream.hash[:Filter]
 
           when :CCITTFaxDecode then
@@ -59,8 +60,11 @@ module ExtractImages
 
     def save(filename)
       color_space = @stream.hash[:ColorSpace]
-      color_space = color_space.is_a?(Array) ? color_space[1] : color_space 
-      binding.pry
+      if color_space.is_a?(Array)
+        color_space = color_space[1]
+        #@stream = color_space[3]
+      end 
+      
       case color_space
       when :DeviceCMYK then save_cmyk(filename)
       when :DeviceGray then save_gray(filename)
@@ -146,6 +150,12 @@ module ExtractImages
       # header = byte order, version magic, offset of directory, directory count,
       # followed by a series of tags containing metadata.
       tag_count = 8
+      color_space = @stream.hash[:ColorSpace]
+      if color_space.is_a?(Array)
+        data = color_space[3].unfiltered_data + @stream.unfiltered_data
+      else
+        data = @stream.unfiltered_data
+      end
       header = [ 73, 73, 42, 8, tag_count ].pack("ccsIs")
       tiff = header.dup
       tiff << short_tag.call( 256, 1, w ) # image width
