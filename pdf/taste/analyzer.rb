@@ -14,6 +14,7 @@ module PDF
         walk(receiver)
         receiver
       end
+
       def width
         @attributes[:MediaBox][2] - @attributes[:MediaBox][0]
       end
