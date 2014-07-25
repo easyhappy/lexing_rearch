@@ -52,8 +52,6 @@ class Page
   end
 
   def analyze_children_page_count
-    return @children_page_count if @children_page_count
-
     positions = self.lines.map(&:begin_position).map(&:to_i)
     if positions.max - positions.min > 200
       @children_page_count = 2
@@ -65,6 +63,7 @@ end
 
 class PageLine
   attr_accessor :columns, :begin_position, :end_position, :height
+
   def initialize char
     @columns = []
     @begin_position = char.x
@@ -91,7 +90,7 @@ class ContentColumn
   end
 
   def << char
-    if is_English_char?(char.text) == 0 and (char.x - @last_position) > 1.5*char.width
+    if is_English_or_digest_char?(char.text) == 0 and (char.x - @last_position) > 1.5*char.width
       @text += "  #{char.text}"
     else
       @text += char.text
@@ -99,26 +98,82 @@ class ContentColumn
     @last_position = char.x
   end
 
-  def is_English_char?(text)
-    text =~ /[A-Za-z]/
+  def is_English_or_digest_char?(text)
+    text =~ /[A-Za-z0-9]/
   end
 end
 
 class PdfAnalyzer
-  attr_accessor :file_name, :current_page
+  attr_accessor :file_name, :current_pages, :current_page
   
   def initialize(file_name)
   	@file_name = file_name
   	@pdf_reader = PDF::Reader.new(file_name)
   	@total_number = @pdf_reader.page_count
+    @current_pages = []
   end
 
   def analyzer_page page
     receiver = page.text_receiver
-    @characters = receiver.instance_variable_get :@characters
+    @current_pages  <<  generate_new_page(page)
     
-    @current_page = Page.new(page)
+    @characters = receiver.instance_variable_get :@characters
+    @analyze_count = 1
+    @current_page = @current_pages[@analyze_count-1]
+    analyzer_characters @characters
+    
+    #第二次 解析character， 目的去掉 第一次 带来的误差
+    new_characters = sort_characters @characters
+
+    @current_pages  <<  generate_new_page(page)
+    @analyze_count = 2
+    @current_page = @current_pages[@analyze_count-1]
+    analyzer_characters new_characters
+  end
+
+  def sort_characters characters
+    #按照characters的纵坐标优先， 横坐标次之的方式进行 排序
+    children_page_count = @current_pages.first.analyze_children_page_count
+    new_characters = children_page_count.times.map{|index| {} }
+    middle_width = @current_pages.first.width/@current_pages.first.analyze_children_page_count
     @characters.each do |char|
+      children_page_number = char.x/middle_width
+      position = -1
+      chars = new_characters[children_page_number]
+      height = char.y
+      
+      same_height = nil
+      
+      chars.keys.each do |key|
+        same_height = key and next if strict_same_line? key, height
+      end
+      if same_height
+        chars[same_height] << char
+      else
+        chars[height] = [char]
+      end
+    end
+
+    new_characters.each do |char_hash|
+      char_hash.each do |key, char_list|
+        char_hash[key] = char_list.sort_by(&:x)
+      end
+    end
+
+    new_characters.map do |char_hash|
+      char_hash.sort.reverse.map(&:last)
+    end.flatten
+  end
+
+  def generate_new_page page
+    if @current_pages.empty?
+      return Page.new(page)
+    end
+    current_page = Page.new(page)
+  end
+
+  def analyzer_characters characters
+    characters.each do |char|
       if char.x > 850 and char.y > 460
         #认为是标题
         @current_page.page_title = @current_page.page_title.to_s + char.text
@@ -152,6 +207,10 @@ class PdfAnalyzer
     (h1 - h2).abs < 8
   end
 
+  def strict_same_line? h1, h2
+    (h1-h2).abs < 6.5
+  end
+
   def same_rank? w1, w2
     (w1 - w2).abs < 16
   end
@@ -177,8 +236,10 @@ class PdfAnalyzer
     return lines if char.text.bytesize == 3 and char.text != '，'
     return [] if char.text == '-'
     #return lines if same_rank?(@current_page.lines.last.begin_position, char.x)
+    page_count = @current_page.analyze_children_page_count
+    middle_width = @current_page.width/page_count
     @current_page.lines.each do |line|
-      lines << line if same_line?(line.height, char.y) 
+      lines << line if same_line?(line.height, char.y) and line.begin_position/middle_width == char.x/middle_width
     end
     lines
   end
@@ -268,7 +329,7 @@ get '/' do
   page_number = params[:page] || 2
   analyzer.analyzer_page_with_number page_number.to_i - 1
   @current_page = analyzer.current_page
-  #@characters = analyzer.instance_variable_get :@characters
+  @characters = analyzer.instance_variable_get :@characters
   @characters = []
   slim :index
 end
