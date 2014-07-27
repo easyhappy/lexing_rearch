@@ -9,10 +9,14 @@
 # Thanks to Jack Rusher for the initial version of this example.
 require 'pry'
 require 'pdf/reader'
-
 module ExtractImages
 
   class Extractor
+    attr_accessor :total_count, :filenames
+    def initialize count
+      @total_count = count
+      @filenames  = []
+    end
 
     def page(page)
       process_page(page, 0)
@@ -29,9 +33,11 @@ module ExtractImages
       return count if xobjects.empty?
 
       xobjects.each do |name, stream|
+
         case stream.hash[:Subtype]
         when :Image then
           count += 1
+          @total_count += 1
           puts stream.hash[:Filter]
           case stream.hash[:Filter]
 
@@ -40,15 +46,17 @@ module ExtractImages
           when :DCTDecode      then
             ExtractImages::Jpg.new(stream).save("#{page.number}-#{count}-#{name}.jpg")
           else
-            ExtractImages::Raw.new(stream).save("#{page.number}-#{count}-#{name}.tif")
+            filename = "#{page.number}-#{count}-#{name}.tif"
+            ExtractImages::Raw.new(stream).save(filename)
+            @filenames << filename
           end
         when :Form then
+          @total_count += 1
           count = process_page(PDF::Reader::FormXObject.new(page, stream), count)
         end
       end
       count
     end
-
   end
 
   class Raw
@@ -61,8 +69,8 @@ module ExtractImages
     def save(filename)
       color_space = @stream.hash[:ColorSpace]
       if color_space.is_a?(Array)
-        color_space = color_space[1]
-        #@stream = color_space[3]
+        save_gray(filename, stream.unfiltered_data)
+        return
       end 
       
       case color_space
@@ -76,7 +84,8 @@ module ExtractImages
 
     private
 
-    def save_cmyk(filename)
+    def save_cmyk(filename, data=nil)
+      data = data ? data : stream.unfiltered_data
       h    = stream.hash[:Height]
       w    = stream.hash[:Width]
       bpc  = stream.hash[:BitsPerComponent]
@@ -98,16 +107,17 @@ module ExtractImages
       tiff << short_tag.call( 262, 1, 5 ) # colorspace - separation
       tiff << long_tag.call( 273, 1, (10 + (tag_count*12) + 20) ) # data offset
       tiff << short_tag.call( 277, 1, 4 ) # samples per pixel
-      tiff << long_tag.call( 279, 1, stream.unfiltered_data.size) # data byte size
+      tiff << long_tag.call( 279, 1, data.size) # data byte size
       tiff << short_tag.call( 284, 1, 1 ) # planer config
       tiff << long_tag.call( 332, 1, 1)   # inkset - CMYK
       tiff << [0].pack("I") # next IFD pointer
       tiff << [bpc, bpc, bpc, bpc].pack("IIII")
-      tiff << stream.unfiltered_data
+      tiff << data
       File.open(filename, "wb") { |file| file.write tiff }
     end
 
-    def save_gray(filename)
+    def save_gray(filename, local_data=nil)
+      local_data = local_data || stream.unfiltered_data
       h    = stream.hash[:Height]
       w    = stream.hash[:Width]
       bpc  = stream.hash[:BitsPerComponent]
@@ -129,11 +139,11 @@ module ExtractImages
       tiff << short_tag.call( 262, 1, 1 ) # colorspace - grayscale
       tiff << long_tag.call( 273, 1, (10 + (tag_count*12) + 4) ) # data offset
       tiff << short_tag.call( 277, 1, 1 ) # samples per pixel
-      tiff << long_tag.call( 279, 1, stream.unfiltered_data.size) # data byte size
+      tiff << long_tag.call( 279, 1, local_data.size) # data byte size
       tiff << short_tag.call( 284, 1, 1 ) # planer config
       tiff << [0].pack("I") # next IFD pointer
-      p stream.unfiltered_data.size
-      tiff << stream.unfiltered_data
+      p local_data.size
+      tiff << local_data
       File.open(filename, "wb") { |file| file.write tiff }
     end
 
@@ -152,10 +162,11 @@ module ExtractImages
       tag_count = 8
       color_space = @stream.hash[:ColorSpace]
       if color_space.is_a?(Array)
-        data = color_space[3].unfiltered_data + @stream.unfiltered_data
+        data =  @stream.unfiltered_data
       else
         data = @stream.unfiltered_data
       end
+      #data = @stream.unfiltered_data
       header = [ 73, 73, 42, 8, tag_count ].pack("ccsIs")
       tiff = header.dup
       tiff << short_tag.call( 256, 1, w ) # image width
@@ -237,8 +248,7 @@ module ExtractImages
 end
 
 filename = "demo_1.pdf"
-extractor = ExtractImages::Extractor.new
-
+extractor = ExtractImages::Extractor.new 0
 PDF::Reader.open(filename) do |reader|
   page = reader.page(25)
   extractor.page(page)
