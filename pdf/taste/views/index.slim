@@ -3,9 +3,10 @@
   = '-'*10
   = file
   br
-- @characters.each do |char|
-  = char.inspect
-  br
+- if params[:c].to_i == 1
+  - @characters.each do |char|
+    = char.inspect
+    br
 
 - if @origin_text
   - @origin_text

@@ -148,7 +148,9 @@ class PdfAnalyzer
     #按照characters的纵坐标优先， 横坐标次之的方式进行 排序
     children_page_count = @current_pages.first.analyze_children_page_count
     new_characters = children_page_count.times.map{|index| {} }
-    middle_width = @max_width/@current_pages.first.analyze_children_page_count
+    max_width = [@current_pages.first.width, @max_width].max
+    middle_width = max_width/@current_pages.first.analyze_children_page_count
+
     @characters.each do |char|
       children_page_number = char.x.to_i < middle_width.to_i ? 0 : 1
       position = -1
@@ -368,13 +370,12 @@ get '/' do
   analyzer = PdfAnalyzer.new('demo_1.pdf')
   page_number = params[:page] || 2
   analyzer.analyzer_page_with_number page_number.to_i - 1
-  
   @images = analyzer.analyzer_image_with_number page_number.to_i
   analyzer.merge_images_and_text @images
 
   @current_page = analyzer.current_page
   @characters = analyzer.instance_variable_get :@characters
-  @characters = []
+  #@characters = []
   @origin_text = analyzer.pdf_reader.page(page_number.to_i).text
   #binding.pry
   slim :index
