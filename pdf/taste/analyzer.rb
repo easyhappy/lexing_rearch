@@ -5,6 +5,8 @@ require 'rack'
 require 'slim'
 require 'linguo'
 require 'fileutils'
+require './image_test'
+require 'sinatra/static_assets'
 
 module PDF
   class Reader
@@ -62,13 +64,14 @@ class Page
 end
 
 class PageLine
-  attr_accessor :columns, :begin_position, :end_position, :height
+  attr_accessor :columns, :begin_position, :end_position, :height, :type
 
   def initialize char
     @columns = []
     @begin_position = char.x
     @height         = char.y
     @end_position   = char.x
+    @type = :text
   end
 
   def <=> other
@@ -76,6 +79,14 @@ class PageLine
 
   def << content
     @columns << content
+  end
+end
+
+class ImageLine
+  attr_accessor :path, :type
+  def initialize path
+    @path = path
+    @type = :image
   end
 end
 
@@ -104,13 +115,14 @@ class ContentColumn
 end
 
 class PdfAnalyzer
-  attr_accessor :file_name, :current_pages, :current_page
+  attr_accessor :file_name, :current_pages, :current_page, :max_width, :pdf_reader
   
   def initialize(file_name)
   	@file_name = file_name
   	@pdf_reader = PDF::Reader.new(file_name)
   	@total_number = @pdf_reader.page_count
     @current_pages = []
+    @max_width = -1
   end
 
   def analyzer_page page
@@ -123,6 +135,7 @@ class PdfAnalyzer
     analyzer_characters @characters
     
     #第二次 解析character， 目的去掉 第一次 带来的误差
+
     new_characters = sort_characters @characters
 
     @current_pages  <<  generate_new_page(page)
@@ -135,9 +148,9 @@ class PdfAnalyzer
     #按照characters的纵坐标优先， 横坐标次之的方式进行 排序
     children_page_count = @current_pages.first.analyze_children_page_count
     new_characters = children_page_count.times.map{|index| {} }
-    middle_width = @current_pages.first.width/@current_pages.first.analyze_children_page_count
+    middle_width = @max_width/@current_pages.first.analyze_children_page_count
     @characters.each do |char|
-      children_page_number = char.x/middle_width
+      children_page_number = char.x.to_i < middle_width.to_i ? 0 : 1
       position = -1
       chars = new_characters[children_page_number]
       height = char.y
@@ -174,6 +187,9 @@ class PdfAnalyzer
 
   def analyzer_characters characters
     characters.each do |char|
+      if char.x > @max_width
+        @max_width = char.x
+      end
       if char.x > 850 and char.y > 460
         #认为是标题
         @current_page.page_title = @current_page.page_title.to_s + char.text
@@ -303,9 +319,6 @@ class PdfAnalyzer
     @current_page << page_line
   end
 
-  def save_current_page
-  end
-
   def run
   	@pdf_reader.pages[2...-1].each do |page|
       analyzer_page page
@@ -315,21 +328,54 @@ class PdfAnalyzer
   def analyzer_page_with_number number
     analyzer_page @pdf_reader.pages[number]
   end
+
+  def analyzer_image_with_number number
+    extractor = ExtractImages::Extractor.new 0
+    extractor.page @pdf_reader.page(number)
+    extractor.filenames
+  end
+
+  def merge_images_and_text images
+    return if images.empty?
+    positions = []
+    current_page.lines.each_with_index do |line, index|
+      if /^图  [0-9]/.match line.columns.first.text
+        positions << index 
+      end
+    end
+    count = 0 
+    positions.each_with_index do |position, index|
+      current_page.lines.insert position + count ,  ImageLine.new(images[index])
+      count += 1
+    end
+  end
 end
 
 
 
 Sinatra::Application.reset!
 use Rack::Reloader
+use Rack::Static, :urls => ["/images"], :root => "public"
 set :slim, :pretty => true
+register Sinatra::StaticAssets
 
 get '/' do
-  FileUtils.cp('../test/demo_1.pdf', 'demo_1.pdf')
+  @files = ['Audi+A4L+B8_cn.pdf', 'Audi+A5_cn.pdf', 
+    'Audi+A6L+C7_cn.pdf', 'Audi+A6l+C7+MMI_cn.pdf', 'Audi+A8+D4_cn.pdf',
+    'Audi+MMI+Navigation+plus+mit+RSE(D4)_cn.pdf', 'Audi+Q5_cn.pdf', 
+    'Audi+Q7_cn.pdf']
+  FileUtils.cp("../test/#{@files[(params[:file].to_i | 0)]}", 'demo_1.pdf')
   analyzer = PdfAnalyzer.new('demo_1.pdf')
   page_number = params[:page] || 2
   analyzer.analyzer_page_with_number page_number.to_i - 1
+  
+  @images = analyzer.analyzer_image_with_number page_number.to_i
+  analyzer.merge_images_and_text @images
+
   @current_page = analyzer.current_page
   @characters = analyzer.instance_variable_get :@characters
   @characters = []
+  @origin_text = analyzer.pdf_reader.page(page_number.to_i).text
+  #binding.pry
   slim :index
 end

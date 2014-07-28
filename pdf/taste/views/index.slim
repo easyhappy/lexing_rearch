@@ -1,11 +1,26 @@
+- @files.each_with_index do |file, index|
+  = index
+  = '-'*10
+  = file
+  br
 - @characters.each do |char|
   = char.inspect
+  br
+
+- if @origin_text
+  - @origin_text
+  - '-'*10
   br
 
 - if @current_page.page_title
   h3
   	= @current_page.page_title
 - @current_page.lines.each do |line|
+  - if line.type == :image
+    img src="/images/#{line.path}" style="wdith: 200px; height: 200px"
+    br
+    - next
+
   - line.columns.each do |column|
     span style="font-size: #{column.font_size*2}px"
   	  = column.text

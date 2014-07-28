@@ -46,7 +46,7 @@ module ExtractImages
           when :DCTDecode      then
             ExtractImages::Jpg.new(stream).save("#{page.number}-#{count}-#{name}.jpg")
           else
-            filename = "#{page.number}-#{count}-#{name}.tif"
+            filename = "#{page.number}-#{count}-#{name}.jpg"
             ExtractImages::Raw.new(stream).save(filename)
             @filenames << filename
           end
@@ -113,7 +113,7 @@ module ExtractImages
       tiff << [0].pack("I") # next IFD pointer
       tiff << [bpc, bpc, bpc, bpc].pack("IIII")
       tiff << data
-      File.open(filename, "wb") { |file| file.write tiff }
+      File.open('public/images/' + filename, "wb") { |file| file.write tiff }
     end
 
     def save_gray(filename, local_data=nil)
@@ -144,7 +144,7 @@ module ExtractImages
       tiff << [0].pack("I") # next IFD pointer
       p local_data.size
       tiff << local_data
-      File.open(filename, "wb") { |file| file.write tiff }
+      File.open('public/images/' + filename, "wb") { |file| file.write tiff }
     end
 
     def save_rgb(filename)
@@ -180,7 +180,7 @@ module ExtractImages
       tiff << [0].pack("I") # next IFD pointer
       tiff << [bpc, bpc, bpc].pack("III")
       tiff << stream.unfiltered_data
-      File.open(filename, "wb") { |file| file.write tiff }
+      File.open('public/images/' + filename, "wb") { |file| file.write tiff }
     end
   end
 
@@ -195,7 +195,7 @@ module ExtractImages
       w = stream.hash[:Width]
       h = stream.hash[:Height]
       puts "#{filename}: h=#{h}, w=#{w}"
-      File.open(filename, "wb") { |file| file.write stream.data }
+      File.open('public/images/' + filename, "wb") { |file| file.write stream.data }
     end
   end
 
@@ -242,7 +242,7 @@ module ExtractImages
       + long_tag.call( 279, len) \
       + [0].pack("I") \
       + stream.data
-      File.open(filename, "wb") { |file| file.write tiff }
+      File.open('public/images/' + filename, "wb") { |file| file.write tiff }
     end
   end
 end
