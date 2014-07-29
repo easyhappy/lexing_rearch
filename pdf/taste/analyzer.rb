@@ -192,6 +192,10 @@ class ContentColumn
   def is_English_or_digest_char?(text)
     text =~ /[A-Za-z0-9]/
   end
+
+  def to_s
+    "字体： #{text}  , begin: #{begin_position}    , end: #{last_position}"
+  end
 end
 
 class PdfAnalyzer
@@ -214,7 +218,7 @@ class PdfAnalyzer
     @current_page = @current_pages[@analyze_count-1]
     analyzer_characters @characters
     
-    #第二次 解析character， 目的去掉 第一次 带来的误差
+    #第二次 解析characters， 目的去掉 第一次 带来的误差
 
     new_characters = sort_characters @characters
 
@@ -457,7 +461,7 @@ set :slim, :pretty => true
 register Sinatra::StaticAssets
 
 get '/' do
-  
+
   @files = ['Audi+A4L+B8_cn.pdf', 'Audi+A5_cn.pdf', 
     'Audi+A6L+C7_cn.pdf', 'Audi+A6l+C7+MMI_cn.pdf', 'Audi+A8+D4_cn.pdf',
     'Audi+MMI+Navigation+plus+mit+RSE(D4)_cn.pdf', 'Audi+Q5_cn.pdf', 
@@ -468,7 +472,7 @@ get '/' do
   analyzer.analyzer_page_with_number page_number.to_i - 1
   @images = analyzer.analyzer_image_with_number page_number.to_i
   analyzer.merge_images_and_text @images
-
+  @first_page = analyzer.current_pages.first
   @current_page = analyzer.current_page
   @characters = analyzer.instance_variable_get :@characters
   #@characters = []

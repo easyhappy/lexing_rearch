@@ -3,6 +3,14 @@
   = '-'*10
   = file
   br
+- if params[:p].to_i == 1
+  - @first_page.lines.each do |line|
+    - line.columns.each do |col|
+      = col.to_s
+    br
+
+  br
+
 - if params[:c].to_i == 1
   - @characters.each do |char|
     = char.inspect
