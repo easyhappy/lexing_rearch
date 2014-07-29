@@ -29,7 +29,7 @@ module PDF
 end
 
 class Page
-  attr_accessor :page_number, :page_title, :lines, :page_types, :children_page_count, :origin_page
+  attr_accessor :page_number, :page_title, :lines, :page_types, :children_page_count, :origin_page, :children_page_positions
   def initialize(page)
     @origin_page = page
     @page_number = page.number
@@ -53,13 +53,93 @@ class Page
     origin_page.height
   end
 
-  def analyze_children_page_count
+  def analyze_children_page_count force=false
+    return analyze_children_page_count_for_catalog_page if @page_types.include?(:catalog) and force
     positions = self.lines.map(&:begin_position).map(&:to_i)
     if positions.max - positions.min > 200
       @children_page_count = 2
     else
       @children_page_count = 1
     end
+  end
+
+  def analyze_children_page_count_for_catalog_page
+    position_indexes = []
+    last_height = -1
+    lines.each_with_index do |line, index|
+      if position_indexes.empty?
+        position_indexes << [index, index]
+        last_height = line.height
+        next
+      end
+      if line.height > last_height
+        position_indexes.last[1] = index - 1
+        position_indexes << [index, index]
+        last_height = line.height
+        next
+      end
+      position_indexes.last[1] = index
+      last_height = line.height
+    end
+
+    @children_page_positions = []
+    total_count = 0
+    position_indexes.each_with_index do |positions, index|
+      flag = false
+      x = 0
+      lines[positions[0]..positions[1]].each do |line|
+        line.columns.each do |column|
+          if column.text.include?('.........')
+            x +=1
+            flag = true
+            unless @children_page_positions[total_count]
+              @children_page_positions[total_count] = [line.begin_position, line.end_position]
+            end
+            number_line = find_catalog_page_number line
+
+            if line.end_position + 200 < number_line.end_position
+              number_line = line 
+            end
+            #binding.pry if x >= 10
+
+            #number_line = line
+            if @children_page_positions[total_count]
+              if @children_page_positions[total_count][0] > number_line.begin_position
+                @children_page_positions[total_count][0] = number_line.begin_position
+              end
+              if @children_page_positions[total_count][1] < number_line.end_position
+                @children_page_positions[total_count][1] = number_line.end_position
+              end
+            end
+          end
+        end
+      end
+      total_count += 1 if flag
+    end
+    return @children_page_positions.size
+  end
+
+  def find_catalog_page_number current_line
+    return current_line if /^-/.match(current_line.columns.first.text)
+    self.lines.each_with_index do |line, index|
+      #puts line.height.to_s + "---" + line.columns.first.text + '---' + line.begin_position.to_s  + '---' + line.end_position.to_s
+      if strict_same_line?(line.height, current_line.height)
+        puts @children_page_positions
+        if line.begin_position >= current_line.end_position and line.columns.size == 1 and /^[0-9]*$/.match(line.columns[-1].text)
+          return line
+        end
+        if line.columns.size == 3 and line.columns.first.text == 'A' and /^[0-9]*$/.match(line.columns[1].text)
+          if /^[0-9]*$/.match(line.columns[-1].text) and line.columns.last.begin_position > current_line.end_position
+            return line
+          end
+        end
+      end
+    end
+    current_line
+  end
+
+  def strict_same_line? h1, h2
+    (h1-h2).abs < 5
   end
 end
 
@@ -128,7 +208,7 @@ class PdfAnalyzer
   def analyzer_page page
     receiver = page.text_receiver
     @current_pages  <<  generate_new_page(page)
-    
+
     @characters = receiver.instance_variable_get :@characters
     @analyze_count = 1
     @current_page = @current_pages[@analyze_count-1]
@@ -146,14 +226,29 @@ class PdfAnalyzer
 
   def sort_characters characters
     #按照characters的纵坐标优先， 横坐标次之的方式进行 排序
-    children_page_count = @current_pages.first.analyze_children_page_count
+    current_page = @current_pages.first
+    children_page_count = @current_pages.first.analyze_children_page_count true
     new_characters = children_page_count.times.map{|index| {} }
     max_width = [@current_pages.first.width, @max_width].max
-    middle_width = max_width/@current_pages.first.analyze_children_page_count
-
+    middle_width = max_width/children_page_count
     @characters.each do |char|
-      children_page_number = char.x.to_i < middle_width.to_i ? 0 : 1
-      position = -1
+      children_page_number = 0
+
+      if current_page.is_catalog?
+        positions = current_page.children_page_positions 
+        positions.each_with_index do |p, index|
+          break if index == positions.size - 1
+          if char.x < (positions[index+1][0] + positions[index][1])/2
+            children_page_number = index
+            break
+          end
+          children_page_number = index + 1
+
+        end
+        #puts char.text + "------" + children_page_number.to_s + "----" + char.x.to_s
+      else
+        children_page_number = char.x < middle_width ? 0 : 1
+      end
       chars = new_characters[children_page_number]
       height = char.y
       

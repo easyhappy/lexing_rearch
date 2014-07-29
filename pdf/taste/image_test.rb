@@ -44,6 +44,8 @@ module ExtractImages
           when :CCITTFaxDecode then
             ExtractImages::Tiff.new(stream).save("#{page.number}-#{count}-#{name}.tif")
           when :DCTDecode      then
+            filename = "#{page.number}-#{count}-#{name}.jpg"
+            @filenames << filename
             ExtractImages::Jpg.new(stream).save("#{page.number}-#{count}-#{name}.jpg")
           else
             filename = "#{page.number}-#{count}-#{name}.jpg"
