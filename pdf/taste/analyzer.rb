@@ -306,6 +306,7 @@ class PdfAnalyzer
       end
       if line.line_types.include?(:table_head)
         line.line_types.delete :table_head
+        line.line_types << :table_body
         line.line_types.add :repeat_table_head
         table_head = line
         first_table_head.scope_index[1] = table_index + 1 + part_table_index
