@@ -144,14 +144,18 @@ class Page
 end
 
 class PageLine
-  attr_accessor :columns, :begin_position, :end_position, :height, :type
+  attr_accessor :columns, :begin_position, :end_position, :height, :type, :line_types, :scope_index, :char_indexes
 
-  def initialize char
+  def initialize char, char_index
     @columns = []
     @begin_position = char.x
     @height         = char.y
     @end_position   = char.x
     @type = :text
+    @line_types = Set.new
+    #scope_index 是为table服务的
+    @scope_index = []
+    @char_indexes = Set.new char_index
   end
 
   def <=> other
@@ -171,13 +175,14 @@ class ImageLine
 end
 
 class ContentColumn
-  attr_accessor :font_size, :width, :text, :last_position, :type, :begin_position
+  attr_accessor :font_size, :width, :text, :last_position, :type, :begin_position, :height
   def initialize(char)
     @text = char.text
     @font_size = char.font_size
     @width     = char.width
     @last_position = char.x
     @begin_position = char.x
+    @height = char.y
   end
 
   def << char
@@ -195,6 +200,7 @@ class ContentColumn
 
   def to_s
     "字体： #{text}  , begin: #{begin_position}    , end: #{last_position}"
+    [text, begin_position, last_position, font_size, height].to_s
   end
 end
 
@@ -226,6 +232,76 @@ class PdfAnalyzer
     @analyze_count = 2
     @current_page = @current_pages[@analyze_count-1]
     analyzer_characters new_characters
+
+    analyze_page_type @current_pages.last
+  end
+
+  def analyze_page_type page
+    analyze_page_for_table_type page
+  end
+
+  def analyze_page_for_table_type page
+    table_line = []
+    standard_table_line = []
+    is_table = false
+    page.lines.each_with_index do |line, index|
+      if table_line.empty?
+        table_line << [[index, line.columns.size], [index, line.columns.size]]
+        next
+      end
+      if line.columns.size == table_line.last[0][1]
+        table_line.last[1] = [index, line.columns.size]
+        next
+      end
+
+      table_line << [[index, line.columns.size], [index, line.columns.size]]
+    end
+
+    table_line.each do |bl|
+      begin_index = bl[0][0]
+      end_index   = bl[1][0]
+      next if bl[0][0] == bl[1][0] or bl[0][1] < 3
+      flag = true
+      bl[0][1].times.each do |offset_index|
+        begin_positions = []
+        page.lines[begin_index..end_index].each do |line|
+          begin_positions << line.columns[offset_index].begin_position
+        end
+        flag = false unless (strict_same_line? begin_positions[0], begin_positions[-1]) and (strict_same_line? begin_positions.max, begin_positions.min)
+      end
+
+      if flag
+        page.lines[begin_index..end_index].each_with_index do |line, index|
+          if index == 0
+            line.line_types << :table_head
+            standard_table_line << [begin_index, end_index]
+            line.scope_index = [begin_index, end_index]
+          else
+            line.line_types << :table_body
+          end
+          is_table = true
+        end
+      end
+    end
+
+    return unless is_table
+
+    table_index = standard_table_line.first[0]
+    table_head  = page.lines[table_index]
+    page.lines[(table_index+1)..-1].each do |line|
+      if same_rank?(line.columns.first.begin_position, table_head.columns.first.begin_position) and same_rank?(line.columns.last.begin_position, table_head.columns.last.begin_position)
+        line.line_types <<     :table_body
+        line.line_types.delete :table_head
+      else
+        if line.line_types.include?(:table_head)
+          line.line_types.delete :table_head
+          line.line_types.add :repeat_table_head
+          table_head = line
+        else
+          break
+        end
+      end  
+    end
   end
 
   def sort_characters characters
@@ -287,7 +363,7 @@ class PdfAnalyzer
   end
 
   def analyzer_characters characters
-    characters.each do |char|
+    characters.each_with_index do |char, char_index|
       if char.x > @max_width
         @max_width = char.x
       end
@@ -299,14 +375,14 @@ class PdfAnalyzer
 
       if @current_page.lines.empty?
         #如果还不存在page_lines
-        new_page_line char
+        new_page_line char, char_index
         next
       end
       
       page_line = @current_page.lines.last
       if same_line? page_line.height, char.y and page_line.end_position < char.x
         column = page_line.columns.last
-        if column.font_size == char.font_size
+        if column.font_size == char.font_size and column.last_position + char.width*6 > char.x
           column << char
         else
           column = ContentColumn.new(char)
@@ -314,9 +390,10 @@ class PdfAnalyzer
         end
         page_line.begin_position = char.x if page_line.begin_position > char.x 
         page_line.end_position   = char.x if page_line.end_position < char.x
+        page_line.char_indexes   << char_index
         next       
       end
-      new_page_line char
+      new_page_line char, char_index
     end
   end
 
@@ -361,13 +438,14 @@ class PdfAnalyzer
     lines
   end
 
-  def insert_char_to_lines char, lines
+  def insert_char_to_lines char, lines, char_index
     page_count = @current_page.analyze_children_page_count
     middle_width = @current_page.width/page_count
 
     lines.each_with_index do |line, line_index|
       line.columns.each_with_index do |column, index|
         if char.x < column.begin_position
+          line.char_indexes << char_index
           if index > 0 and line.columns[index-1].font_size == char.font_size
             line.columns[index-1] << char
           else
@@ -378,6 +456,7 @@ class PdfAnalyzer
       end
       #binding.pry  if line_index ==1 
       if char.x < middle_width
+        line.char_indexes << char_index
         if line.columns.last.font_size == char.font_size
           line.columns.last << char
         else
@@ -389,6 +468,7 @@ class PdfAnalyzer
       last_position = line.columns.last.last_position
       begin_position = line.begin_position
       if char.x > middle_width and char.x > last_position and last_position > middle_width
+        line.char_indexes << char_index
         if line.columns.last.font_size == char.font_size
           line.columns.last << char
         else
@@ -406,15 +486,15 @@ class PdfAnalyzer
     end
   end
 
-  def new_page_line char
+  def new_page_line char, char_index
     set_page_type
     lines = find_and_same_height_lines(char)
     unless lines.empty?
-      insert_char_to_lines char, lines
+      insert_char_to_lines char, lines, char_index
       return
     end
 
-    page_line = PageLine.new(char)
+    page_line = PageLine.new(char, char_index)
     column = ContentColumn.new(char)
     page_line << column
     @current_page << page_line
@@ -476,6 +556,7 @@ get '/' do
   @current_page = analyzer.current_page
   @characters = analyzer.instance_variable_get :@characters
   #@characters = []
+  @analyzer = analyzer
   @origin_text = analyzer.pdf_reader.page(page_number.to_i).text
   #binding.pry
   slim :index
