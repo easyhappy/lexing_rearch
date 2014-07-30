@@ -282,6 +282,7 @@ class PdfAnalyzer
           is_table = true
         end
       end
+      binding.pry
     end
 
     return unless is_table
