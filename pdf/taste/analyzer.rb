@@ -155,7 +155,7 @@ class PageLine
     @line_types = Set.new
     #scope_index 是为table服务的
     @scope_index = []
-    @char_indexes = Set.new char_index
+    @char_indexes = Set.new [char_index]
   end
 
   def <=> other
@@ -163,6 +163,13 @@ class PageLine
 
   def << content
     @columns << content
+  end
+
+  def copy_attributes_without_columns line
+    self.instance_variables.each do |variable|
+      next if variable == :@columns
+      self.instance_variable_set variable, line.instance_variable_get(variable)
+    end
   end
 end
 
@@ -216,6 +223,7 @@ class PdfAnalyzer
   end
 
   def analyzer_page page
+    @origin_page = page
     receiver = page.text_receiver
     @current_pages  <<  generate_new_page(page)
 
@@ -226,14 +234,12 @@ class PdfAnalyzer
     
     #第二次 解析characters， 目的去掉 第一次 带来的误差
 
-    new_characters = sort_characters @characters
+    @new_characters = sort_characters @characters
 
     @current_pages  <<  generate_new_page(page)
     @analyze_count = 2
     @current_page = @current_pages[@analyze_count-1]
-    analyzer_characters new_characters
-
-    analyze_page_type @current_pages.last
+    analyzer_characters @new_characters
   end
 
   def analyze_page_type page
@@ -245,10 +251,12 @@ class PdfAnalyzer
     standard_table_line = []
     is_table = false
     page.lines.each_with_index do |line, index|
+      next if line.type == :image
       if table_line.empty?
         table_line << [[index, line.columns.size], [index, line.columns.size]]
         next
       end
+
       if line.columns.size == table_line.last[0][1]
         table_line.last[1] = [index, line.columns.size]
         next
@@ -256,7 +264,6 @@ class PdfAnalyzer
 
       table_line << [[index, line.columns.size], [index, line.columns.size]]
     end
-
     table_line.each do |bl|
       begin_index = bl[0][0]
       end_index   = bl[1][0]
@@ -282,27 +289,68 @@ class PdfAnalyzer
           is_table = true
         end
       end
-      binding.pry
     end
 
     return unless is_table
 
     table_index = standard_table_line.first[0]
-    table_head  = page.lines[table_index]
-    page.lines[(table_index+1)..-1].each do |line|
-      if same_rank?(line.columns.first.begin_position, table_head.columns.first.begin_position) and same_rank?(line.columns.last.begin_position, table_head.columns.last.begin_position)
+    table_head = first_table_head = page.lines[table_index]
+    page.lines[(table_index+1)..-1].each_with_index do |line, part_table_index|
+      if same_rank?(line.columns.first.begin_position, table_head.columns.first.begin_position) \
+            and same_rank?(line.columns.last.begin_position, table_head.columns.last.begin_position) \
+            and line.columns.size ==  table_head.columns.size
         line.line_types <<     :table_body
         line.line_types.delete :table_head
-      else
-        if line.line_types.include?(:table_head)
-          line.line_types.delete :table_head
-          line.line_types.add :repeat_table_head
-          table_head = line
-        else
-          break
+        first_table_head.scope_index[1] = table_index + 1 + part_table_index
+        next
+      end
+      if line.line_types.include?(:table_head)
+        line.line_types.delete :table_head
+        line.line_types.add :repeat_table_head
+        table_head = line
+        first_table_head.scope_index[1] = table_index + 1 + part_table_index
+        next
+      end
+      if line.columns.size != table_head.columns.size
+        #尝试解析重新解析 charex
+        chars = []
+        line.char_indexes.each do |char_index|
+          chars << @new_characters[char_index]
         end
-      end  
+        begin_positions = table_head.columns.map(&:begin_position)
+
+        position_index = 1
+        chars.sort_by(&:x)
+        if text_is_goto_one_page?(page.lines[table_index+1].columns.last.text) and text_is_goto_one_page? line.columns.last.text
+          #重新生成columns
+          columns = []
+          chars.each do |char|
+            if columns.empty?
+              column = ContentColumn.new(char)
+              columns << column
+              next
+            end
+
+            if position_index == begin_positions.size or char.x.to_i < begin_positions[position_index].to_i
+              columns.last << char
+              next
+            end
+            column = ContentColumn.new(char)
+            columns << column
+            position_index += 1
+          end
+          line.line_types << :table_body
+          line.columns = columns
+          first_table_head.scope_index[1] = table_index + 1 + part_table_index
+          next
+        end
+      end
+      break
     end
+  end
+
+  def text_is_goto_one_page? text
+    /⇒第[0-9]+页/.match text.gsub(' ', '')
   end
 
   def sort_characters characters
@@ -553,6 +601,7 @@ get '/' do
   analyzer.analyzer_page_with_number page_number.to_i - 1
   @images = analyzer.analyzer_image_with_number page_number.to_i
   analyzer.merge_images_and_text @images
+  analyzer.analyze_page_type analyzer.current_pages.last
   @first_page = analyzer.current_pages.first
   @current_page = analyzer.current_page
   @characters = analyzer.instance_variable_get :@characters
