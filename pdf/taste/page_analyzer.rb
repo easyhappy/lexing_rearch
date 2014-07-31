@@ -224,7 +224,7 @@ class ContentColumn
   end
 end
 
-class PdfAnalyzer
+class PageAnalyzer
   attr_accessor :file_name, :current_pages, :current_page, :max_width, :pdf_reader, :current_children_page_number
   
   def initialize(file_name)
@@ -763,7 +763,7 @@ get '/' do
     'Audi+MMI+Navigation+plus+mit+RSE(D4)_cn.pdf', 'Audi+Q5_cn.pdf', 
     'Audi+Q7_cn.pdf']
   FileUtils.cp("../test/#{@files[(params[:file].to_i | 0)]}", 'demo_1.pdf')
-  analyzer = PdfAnalyzer.new('demo_1.pdf')
+  analyzer = PageAnalyzer.new('demo_1.pdf')
   page_number = params[:page] || 2
   analyzer.analyzer_page_with_number page_number.to_i - 1
   @images = analyzer.analyzer_image_with_number page_number.to_i
