@@ -277,6 +277,10 @@ class PdfAnalyzer
       return
     end
 
+    analyze_page_for_common_table page
+  end
+
+  def analyze_page_for_common_table page
     table_line = []
     standard_table_line = []
     is_table = false
@@ -323,7 +327,6 @@ class PdfAnalyzer
     end
 
     return unless is_table
-
 
     table_index = standard_table_line.first[0]
     table_head = first_table_head = page.lines[table_index]
@@ -396,7 +399,7 @@ class PdfAnalyzer
         table_indexes[page_number] << index
       end
     end
-
+    binding.pry
     table_indexes.each do |page_number, line_indexes|
       analyze_goto_table_for_children_page page, line_indexes
     end
