@@ -178,7 +178,7 @@ class PageLine
   end
 
   def line_text
-    columns.map(&:text).join("\t")
+    columns.map(&:text).join("  ")
   end
 end
 
@@ -207,7 +207,7 @@ class ContentColumn
 
   def << char
     if is_English_or_digest_char?(char.text) == 0 and (char.x - @last_position) > 1.5*char.width
-      @text += "  #{char.text}"
+      @text += " #{char.text}"
     else
       @text += char.text
     end
@@ -257,7 +257,11 @@ class PdfAnalyzer
   end
 
   def analyze_page_type page
-    analyze_page_for_table_type page
+    begin
+      analyze_page_for_table_type page
+    rescue Exception => e
+      puts e
+    end
   end
 
   def analyze_page_for_table_type page
@@ -272,8 +276,6 @@ class PdfAnalyzer
       analyze_goto_table page
       return
     end
-
-    return
 
     table_line = []
     standard_table_line = []
@@ -381,14 +383,120 @@ class PdfAnalyzer
   end
 
   def analyze_goto_table page
-    table_indexes = []
+    #flag '=>第 x页'
+    #1、找到每个子页面 有flag 的 lines
+    # table_indexes 的组成 {chilren_page_number: []}
+    #
+
+    table_indexes = {}
     page.lines.each_with_index do |line, index|
-      table_indexes << index if text_is_goto_one_page? line.line_text
+      if text_is_goto_one_page? line.line_text
+        page_number = line.children_page_number
+        table_indexes[page_number] ||= []
+        table_indexes[page_number] << index
+      end
+    end
+
+    table_indexes.each do |page_number, line_indexes|
+      analyze_goto_table_for_children_page page, line_indexes
     end
   end
 
+  def analyze_goto_table_for_children_page page, line_indexes
+    #获取每个td的平均起始横坐标
+    #重新组合每行的td 内容
+    begin_positions = []
+
+    line_indexes.each do |line_index|
+      columns = page.lines[line_index].columns
+      next if columns.size != 3
+      begin_positions << columns.map(&:begin_position)
+    end
+    
+    average_positions = []
+    begin_positions.first.size.times.each do |index| 
+      average_positions <<  begin_positions.map{|item| item[index]}.inject(:+)/begin_positions.size
+    end
+
+    begin_index, end_index = line_indexes.first, line_indexes.last
+    if text_is_goto_table_head? page.lines[begin_index-1].line_text
+
+      begin_index = begin_index - 1
+    end
+    page.lines[begin_index..end_index].each_with_index do |line, index|
+      #重新生成columns
+      if index == 0
+        line.line_types << :table_head
+      else
+        line.line_types << :table_body
+      end
+
+      line.scope_index = [begin_index, end_index]
+      chars = []
+
+      line.char_indexes.each do |char_index|
+        chars << @new_characters[char_index]
+      end
+
+      char_columns = [[], [], []]
+      chars.each do |char|
+        average_positions[1..-1].each_with_index do |begin_position, average_index|
+          if char.x + char.width < begin_position
+            char_columns[average_index] << char
+            break
+          elsif average_index == average_positions.size - 2
+            char_columns.last << char
+            break
+          end
+        end
+      end
+
+      line_columns = []
+      char_columns.each_with_index do |cs, index|
+        new_cs = sort_chars_by_y_and_x cs
+
+        new_cs.each do |char|
+          unless line_columns[index]
+            line_columns << ContentColumn.new(char)
+          else
+            line_columns.last << char
+          end
+        end
+        line.columns = line_columns
+      end
+    end
+  end
+
+  def sort_chars_by_y_and_x chars
+    #对一个chars 按照纵坐标优先、横坐标次之 进行排序
+    new_chars_hash = {}
+    chars.each do |char|
+      same_height = nil
+      
+      new_chars_hash.keys.each do |key|
+        same_height = key and next if strict_same_line? key, char.y
+      end
+
+      if same_height
+        new_chars_hash[same_height] << char
+      else
+        new_chars_hash[char.y] = [char]
+      end
+    end
+
+    new_chars_hash.each do |key, char_list|
+      new_chars_hash[key] = char_list.sort_by(&:x)
+    end
+
+    new_chars_hash.sort.reverse.map(&:last).flatten
+  end
+
   def text_is_goto_one_page? text
-    /⇒第[0-9]+页/.match text.gsub(' ', '') and not "。".match(text)
+    /⇒第[0-9]+页/.match text.gsub(' ', '') and not /。/.match(text)
+  end
+
+  def text_is_goto_table_head? text
+    /按钮说明页/.match text.gsub(' ', '')
   end
 
   def sort_characters characters
