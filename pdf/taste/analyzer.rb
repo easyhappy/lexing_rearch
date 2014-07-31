@@ -546,7 +546,7 @@ class PdfAnalyzer
       char_hash.each do |key, char_list|
         char_hash[key] = char_list.sort_by(&:x)
       end
-    end
+    end 
 
     new_chars = new_characters.map do |char_hash|
       char_hash.sort.reverse.map(&:last)
