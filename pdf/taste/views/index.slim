@@ -56,7 +56,7 @@
   h3
   	= @current_page.page_title
 
-- @current_page.lines.each_with_index do |line, index|
+- @analyzer.current_pages.last.lines.each_with_index do |line, index|
   - if line.type == :image
     img src="/images/#{line.path}" style="wdith: 200px; height: 200px"
     br

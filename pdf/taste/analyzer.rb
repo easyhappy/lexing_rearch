@@ -736,7 +736,7 @@ class PdfAnalyzer
     return if images.empty?
     positions = []
     current_page.lines.each_with_index do |line, index|
-      if /^图  [0-9]/.match line.columns.first.text
+      if /^图[0-9]/.match line.columns.first.text.gsub(' ', '')
         positions << index 
       end
     end
