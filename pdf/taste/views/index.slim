@@ -3,6 +3,7 @@
   = '-'*10
   = file
   br
+
 - if params[:p].to_i == 1
   - @first_page.lines.each do |line|
     - line.columns.each do |col|
@@ -14,9 +15,11 @@
   br
 
 - if params[:f].to_i == 1
-  - @current_page.lines.each do |line|
+  - @current_page.lines.each_with_index do |line, index|
     - if line.type == :image
       - next
+    span
+      = index.to_s + "-->"
     - line.columns.each do |col|
       = col.to_s
     br
@@ -26,9 +29,11 @@
   br
 
 - if params[:s].to_i == 1
-  - @analyzer.current_pages[1].lines.each do |line|
+  - @analyzer.current_pages[1].lines.each_with_index do |line, index|
     - if line.type == :image
       - next
+    span
+      = index.to_s + '---->'
     - line.columns.each do |col|
       = col.to_s
     br

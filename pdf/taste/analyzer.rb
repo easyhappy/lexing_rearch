@@ -45,6 +45,10 @@ class Page
     @page_types.include?(:catalog)
   end
 
+  def is_goto_table?
+    @page_types.include?(:goto_table)
+  end
+
   def width
     origin_page.width
   end
@@ -144,9 +148,9 @@ class Page
 end
 
 class PageLine
-  attr_accessor :columns, :begin_position, :end_position, :height, :type, :line_types, :scope_index, :char_indexes
+  attr_accessor :columns, :begin_position, :end_position, :height, :type, :line_types, :scope_index, :char_indexes, :children_page_number
 
-  def initialize char, char_index
+  def initialize char, char_index, children_page_number=0
     @columns = []
     @begin_position = char.x
     @height         = char.y
@@ -156,6 +160,7 @@ class PageLine
     #scope_index 是为table服务的
     @scope_index = []
     @char_indexes = Set.new [char_index]
+    @children_page_number = children_page_number
   end
 
   def <=> other
@@ -171,6 +176,10 @@ class PageLine
       self.instance_variable_set variable, line.instance_variable_get(variable)
     end
   end
+
+  def line_text
+    columns.map(&:text).join("\t")
+  end
 end
 
 class ImageLine
@@ -178,6 +187,10 @@ class ImageLine
   def initialize path
     @path = path
     @type = :image
+  end
+
+  def line_text
+    ''
   end
 end
 
@@ -212,7 +225,7 @@ class ContentColumn
 end
 
 class PdfAnalyzer
-  attr_accessor :file_name, :current_pages, :current_page, :max_width, :pdf_reader
+  attr_accessor :file_name, :current_pages, :current_page, :max_width, :pdf_reader, :current_children_page_number
   
   def initialize(file_name)
   	@file_name = file_name
@@ -220,6 +233,7 @@ class PdfAnalyzer
   	@total_number = @pdf_reader.page_count
     @current_pages = []
     @max_width = -1
+    @current_children_page_number = 1
   end
 
   def analyzer_page page
@@ -247,17 +261,32 @@ class PdfAnalyzer
   end
 
   def analyze_page_for_table_type page
+    goto_number = 0 # '=>'  符号出现的次数
+    page.lines.each do |line|
+      goto_number += 1 if text_is_goto_one_page? line.line_text
+    end
+    
+    if goto_number > 5
+      #认为 这个包含 表格, 默认这种表格 每行的td的个数是3个。
+      page.page_types << :goto_table
+      analyze_goto_table page
+      return
+    end
+
+    return
+
     table_line = []
     standard_table_line = []
     is_table = false
     page.lines.each_with_index do |line, index|
       next if line.type == :image
+      next if line.columns.size == 1
       if table_line.empty?
         table_line << [[index, line.columns.size], [index, line.columns.size]]
         next
       end
 
-      if line.columns.size == table_line.last[0][1]
+      if line.columns.size == table_line.last[1][1]
         table_line.last[1] = [index, line.columns.size]
         next
       end
@@ -293,6 +322,7 @@ class PdfAnalyzer
 
     return unless is_table
 
+
     table_index = standard_table_line.first[0]
     table_head = first_table_head = page.lines[table_index]
     page.lines[(table_index+1)..-1].each_with_index do |line, part_table_index|
@@ -306,14 +336,14 @@ class PdfAnalyzer
       end
       if line.line_types.include?(:table_head)
         line.line_types.delete :table_head
-        line.line_types << :table_body
+        line.line_types <<     :table_body
         line.line_types.add :repeat_table_head
         table_head = line
         first_table_head.scope_index[1] = table_index + 1 + part_table_index
         next
       end
       if line.columns.size != table_head.columns.size
-        #尝试解析重新解析 charex
+        #尝试解析重新解析 chares
         chars = []
         line.char_indexes.each do |char_index|
           chars << @new_characters[char_index]
@@ -350,8 +380,15 @@ class PdfAnalyzer
     end
   end
 
+  def analyze_goto_table page
+    table_indexes = []
+    page.lines.each_with_index do |line, index|
+      table_indexes << index if text_is_goto_one_page? line.line_text
+    end
+  end
+
   def text_is_goto_one_page? text
-    /⇒第[0-9]+页/.match text.gsub(' ', '')
+    /⇒第[0-9]+页/.match text.gsub(' ', '') and not "。".match(text)
   end
 
   def sort_characters characters
@@ -400,9 +437,19 @@ class PdfAnalyzer
       end
     end
 
-    new_characters.map do |char_hash|
+    new_chars = new_characters.map do |char_hash|
       char_hash.sort.reverse.map(&:last)
     end.flatten
+    set_char_belongs_to_which_children_page new_characters.map(&:values).map(&:flatten).map(&:size), new_chars
+    new_chars
+  end
+
+  def set_char_belongs_to_which_children_page children_page_counts, new_chars 
+    @children_page_number_scope = []
+    children_page_counts.each_with_index do |count, index|
+      sum = children_page_counts[0..index].inject(:+)
+      @children_page_number_scope << [sum, index]
+    end
   end
 
   def generate_new_page page
@@ -528,11 +575,19 @@ class PdfAnalyzer
       end
 
       if char.x > middle_width and lines.size == 1
-        page_line = PageLine.new(char)
+        @current_children_page_number = get_char_belongs_to_which_chilren_page char_index
+        page_line = PageLine.new(char, char_index, @current_children_page_number)
         column = ContentColumn.new(char)
         page_line << column
         @current_page << page_line
       end
+    end
+  end
+
+  def get_char_belongs_to_which_chilren_page char_index
+    return -1 unless self.instance_variables.include?(:@children_page_number_scope)
+    @children_page_number_scope.each_with_index do |number_scope|
+      return number_scope[1] + 1 if char_index < number_scope[0]
     end
   end
 
@@ -543,8 +598,8 @@ class PdfAnalyzer
       insert_char_to_lines char, lines, char_index
       return
     end
-
-    page_line = PageLine.new(char, char_index)
+    @current_children_page_number = get_char_belongs_to_which_chilren_page char_index
+    page_line = PageLine.new(char, char_index, @current_children_page_number)
     column = ContentColumn.new(char)
     page_line << column
     @current_page << page_line
