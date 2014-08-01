@@ -1,0 +1,11 @@
+source 'http://ruby.taobao.org'
+
+gem 'pdf-reader'
+
+gem 'sinatra-static-assets'
+gem 'sinatra'
+gem 'activesupport', '4.1.4'
+gem 'thin'
+
+gem 'pry-nav'
+gem 'pry'

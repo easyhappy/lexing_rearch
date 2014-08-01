@@ -1,3 +1,5 @@
+$: << File.dirname(__FILE__) unless $:.include? File.dirname(__FILE__)
+
 require 'pdf/reader'
 require 'pry'
 require 'sinatra'
@@ -5,8 +7,9 @@ require 'rack'
 require 'slim'
 require 'linguo'
 require 'fileutils'
-require './image_test'
 require 'sinatra/static_assets'
+
+require 'image_test'
 
 module PDF
   class Reader
