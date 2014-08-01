@@ -131,7 +131,7 @@ class Page
     self.lines.each_with_index do |line, index|
       #puts line.height.to_s + "---" + line.columns.first.text + '---' + line.begin_position.to_s  + '---' + line.end_position.to_s
       if strict_same_line?(line.height, current_line.height)
-        puts @children_page_positions
+        #puts @children_page_positions
         if line.begin_position >= current_line.end_position and line.columns.size == 1 and /^[0-9]*$/.match(line.columns[-1].text)
           return line
         end

@@ -2,5 +2,10 @@ default: &default
   test: '1'
 Audi+A4L+B8_cn.pdf:
   <<: *default
-  catatlog_pages:     [4, 5, 6]
-  noise_page_head:    'a4-chinesisch Seite 2 Mittwoch, 8. Oktober 2008 11:11 11'
+  catatlog_pages:           [4, 5, 6]
+  noise_head_height:        495.3293
+  noise_footer_height:      73.2293
+  page_title_height:        468.0293
+  catalog_1_size:           9
+  catalog_2_size:           7
+  catalog_3_size:           6
