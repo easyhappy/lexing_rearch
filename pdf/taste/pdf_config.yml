@@ -6,6 +6,7 @@ Audi+A4L+B8_cn.pdf:
   noise_head_height:        495.3293
   noise_footer_height:      73.2293
   page_title_height:        468.0293
+  page_number_offset:       2
   catalog_1_size:           9
   catalog_2_size:           7
   catalog_3_size:           6
