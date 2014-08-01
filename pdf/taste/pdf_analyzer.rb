@@ -9,8 +9,8 @@ class PdfAnalyzer
   end
 
   def load_configs
-    @all_configs = YAML::load(File.open('pdf_config.yml'))
-    @file_configs = @all_configs[@file_name] || @all_configs['default']
+    @all_config = YAML::load(File.open('pdf_config.yml'))
+    @file_config = @all_config[@file_name] || @all_config['default']
   end
 
   def run
@@ -18,7 +18,7 @@ class PdfAnalyzer
   end
 
   def fetch_pdf_catalogs
-
+    @file_config[:]
   end
 end
 
