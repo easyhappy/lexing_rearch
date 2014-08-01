@@ -1,2 +1,5 @@
+default: &default
+  test: 1
 Audi+A4L+B8_cn.pdf:
-  test:   1
+  <<: *default
+  catatlog_pages:     [4, 5, 6]
