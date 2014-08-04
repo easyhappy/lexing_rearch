@@ -228,7 +228,7 @@ class ContentColumn
 end
 
 class PageAnalyzer
-  attr_accessor :file_name, :current_pages, :current_page, :max_width, :pdf_reader, :current_children_page_number
+  attr_accessor :file_name, :current_pages, :current_page, :max_width, :pdf_reader, :current_children_page_number, :total_number
   
   def initialize(file_name)
   	@file_name = file_name
@@ -263,7 +263,7 @@ class PageAnalyzer
     begin
       analyze_page_for_table_type page
     rescue Exception => e
-      puts e
+      #puts e
     end
   end
 
@@ -402,7 +402,6 @@ class PageAnalyzer
         table_indexes[page_number] << index
       end
     end
-    binding.pry
     table_indexes.each do |page_number, line_indexes|
       analyze_goto_table_for_children_page page, line_indexes
     end

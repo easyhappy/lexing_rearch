@@ -8,7 +8,7 @@ module Analyzer
     include Analyzer::Base
     def create_catalog_1_node line
       if get_catalog_name_and_number line
-        @main_catalogs << CatalogNode.new(*@name_and_number)
+        return CatalogNode.new(*@name_and_number)
       end
     end
 
@@ -48,6 +48,15 @@ module Analyzer
         @part_name = line.line_text
       end
       return @name_and_number
+    end
+
+    def all_second_level_nodes
+      return @second_level_nodes if @second_level_nodes
+      nodes = []
+      @main_catalogs[1..-1].each do |catalog_node|
+        nodes << catalog_node.children
+      end
+      @second_level_nodes = nodes.flatten
     end
   end
 end
