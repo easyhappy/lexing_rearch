@@ -9,6 +9,9 @@ require 'page_analyzer'
 require 'analyzer/pdf_catalog'
 require 'analyzer/catalog_node'
 require 'analyzer/markdown'
+require 'active_record'
+require 'mysql2'
+require 'redcarpet'
 
 class PdfAnalyzer
   include Analyzer::PdfCatalog
@@ -40,7 +43,7 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    @total_number = 15
+    #@total_number  = 11
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
@@ -61,7 +64,7 @@ class PdfAnalyzer
       #binding.pry
     end
 
-    output_to_markdown_file @main_catalogs
+    output_to_markdown_file @main_catalogs, @file_name, @file_configs
   end
 
   def find_page_title page

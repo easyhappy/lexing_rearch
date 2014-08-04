@@ -9,3 +9,7 @@ gem 'thin'
 
 gem 'pry-nav'
 gem 'pry'
+gem 'activerecord'
+gem 'mysql2'
+gem 'redcarpet'
+
