@@ -25,7 +25,7 @@ class PdfAnalyzer
   end
 
   def load_configs
-    @all_configs= YAML::load(File.open('pdf_config.yml')).symbolize_keys!
+    @all_configs= YAML::load(File.open('configs/config.yml')).symbolize_keys!
     @file_configs = (@all_configs[@file_name.to_sym] || @all_configs[:default]).symbolize_keys!
   end
 

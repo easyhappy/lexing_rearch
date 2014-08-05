@@ -9,7 +9,7 @@ require 'linguo'
 require 'fileutils'
 require 'sinatra/static_assets'
 
-require 'image_test'
+require 'image_analyzer'
 
 module PDF
   class Reader
