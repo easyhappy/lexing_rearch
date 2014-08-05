@@ -1,4 +1,7 @@
 # encoding: utf-8
+require 'carrierwave-qiniu'
+require 'carrierwave'
+require 'config/initializers/carrierwave'
 
 class ImageUploader < CarrierWave::Uploader::Base
 

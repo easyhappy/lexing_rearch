@@ -13,4 +13,7 @@ gem 'activerecord'
 gem 'mysql2'
 gem 'redcarpet'
 gem 'carrierwave-qiniu'
+gem 'slim'
+gem 'linguo'
+gem "mini_magick"
 

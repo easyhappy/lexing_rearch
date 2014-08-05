@@ -48,7 +48,7 @@ module ExtractImages
             @filenames << filename
             ExtractImages::Jpg.new(stream).save("#{page.number}-#{count}-#{name}.jpg")
           else
-            filename = "#{page.number}-#{count}-#{name}.jpg"
+            filename = "#{page.number}-#{count}-#{name}.tif"
             ExtractImages::Raw.new(stream).save(filename)
             @filenames << filename
           end
