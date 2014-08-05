@@ -4,6 +4,9 @@ require 'models/car_line'
 require 'models/car_make'
 require 'models/car_model'
 require 'models/section'
+#require 'uploaders/image_uploader'
+#require 'models/picture'
+#require 'config/initializers/carrierwave'
 
 module Analyzer
   module Markdown
@@ -16,7 +19,7 @@ module Analyzer
         :database => "wheel_development"
       )
       find_car_line configs
-
+      binding.pry
       @markdown_file = File.new(file_name.split('.pdf')[0] + '.md', 'w')
       main_catalogs[1..-1].each do |catalog|
         output_leaf_nodes catalog, configs
@@ -28,6 +31,7 @@ module Analyzer
         output_lines_to_db catalog, configs 
         output_catalog_to_db catalog, configs
         output_to_db catalog, configs
+        output_to_file catalog, configs
         return
       end
 
@@ -51,7 +55,7 @@ module Analyzer
         elsif /^-/.match line.line_text
           node << get_catalog_info_for_minus(line)
           return
-        elsif /../.match line.line_text
+        elsif /\.\./.match line.line_text
           node << line.line_text.split('..')[0]
           return
         end
@@ -79,6 +83,7 @@ module Analyzer
     end
 
     def output_catalog_to_db catalog, configs
+      return unless configs[:save_db]
       unless catalog.parent
         Section.find_or_create_by :title => catalog.name, :car_line => @car_line
       else
@@ -118,10 +123,12 @@ module Analyzer
     end
 
     def output_to_db catalog, configs
+      return unless configs[:save_db]
       cs = find_catalog_history catalog
     end
 
     def output_lines_to_db catalog, configs
+      return unless configs[:save_db]
       return if catalog.lines.empty?
       parent = Section.find_or_create_by :title => catalog.parent.name, :car_line => @car_line
       section = Section.find_or_create_by :title => catalog.name, :parent => parent

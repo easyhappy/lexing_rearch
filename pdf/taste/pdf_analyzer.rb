@@ -1,3 +1,4 @@
+#coding: utf-8
 $: << File.dirname(__FILE__) unless $:.include? File.dirname(__FILE__)
 
 require 'yaml'
@@ -43,7 +44,7 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    #@total_number  = 11
+    @total_number  = 12
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page

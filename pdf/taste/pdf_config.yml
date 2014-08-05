@@ -15,3 +15,4 @@ Audi+A4L+B8_cn.pdf:
   catalog_3_size:           6
   content_begin_page:       10
   not_fourth_nodes:         ['说明', '警告！' ]
+  save_db:                  true
