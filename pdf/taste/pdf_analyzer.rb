@@ -31,12 +31,7 @@ class PdfAnalyzer
 
   def run
     analyze_pdf_catalogs
-    analyze_pdf_explains
     analyze_pdf_content_by_catalogs
-  end
-
-  def analyze_pdf_explains
-    #获取pdf本页说明的信息
   end
 
   def analyze_pdf_content_by_catalogs

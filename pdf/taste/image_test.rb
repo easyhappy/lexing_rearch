@@ -1,12 +1,6 @@
 #!/usr/bin/env ruby
 # coding: utf-8
 
-# This demonstrates a way to extract some images (those based on the JPG or
-# TIFF formats) from a PDF. There are other ways to store images, so
-# it may need to be expanded for real world usage, but it should serve
-# as a good guide.
-#
-# Thanks to Jack Rusher for the initial version of this example.
 require 'pry'
 require 'pdf/reader'
 module ExtractImages
@@ -278,11 +272,4 @@ module ExtractImages
       File.open('public/images/' + filename, "wb") { |file| file.write tiff }
     end
   end
-end
-
-filename = "demo_1.pdf"
-extractor = ExtractImages::Extractor.new 0
-PDF::Reader.open(filename) do |reader|
-  #page = reader.page(25)
-  #extractor.page(page)
 end
