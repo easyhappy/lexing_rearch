@@ -3,3 +3,5 @@ pdf/taste/.tags
 pdf/taste/*.tif
 pdf/test/*.pdf
 pdf/*.pdf
+pdf/taste/public/images/*
+pdf/taste/public/dealed_images/*
