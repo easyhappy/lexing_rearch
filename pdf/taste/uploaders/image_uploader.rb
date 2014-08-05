@@ -8,8 +8,8 @@ class ImageUploader < CarrierWave::Uploader::Base
   # Choose what kind of storage to use for this uploader:
   storage :qiniu
 
-  self.qiniu_bucket = "pdf-image"
-  self.qiniu_bucket_domain = "pdf-image.qiniudn.com"
+  self.qiniu_bucket = "pdf-image-test"
+  self.qiniu_bucket_domain = "pdf-image-test.qiniudn.com"
 
   # Override the directory where uploaded files will be stored.
   # This is a sensible default for uploaders that are meant to be mounted:

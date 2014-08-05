@@ -19,7 +19,6 @@ module Analyzer
 
     def output_to_markdown_file main_catalogs, file_name, configs
       find_car_line configs
-      binding.pry
       @markdown_file = File.new(file_name.split('.pdf')[0] + '.md', 'w')
       main_catalogs[1..-1].each do |catalog|
         output_leaf_nodes catalog, configs
@@ -41,10 +40,37 @@ module Analyzer
       end
     end
 
-    def add_line_to_node node, line, page
+    def add_line_to_node node, line, page, configs
       if line.type == :image
+        begin
+          pic_name = line.path.split(".")[0]
+        rescue Exception => e
+        end
+        old_path = File.join("./public/images/", line.path)
+        new_path = File.join("./public/dealed_images", pic_name +".jpg")
+        system "convert #{old_path} #{new_path}"
+
+        file = File.new(new_path)
+        md5  = Digest::MD5.hexdigest(file.read)
+        picture = Picture.find_by_md5(md5)
+        path = line.path
+        unless configs[:pic_force_save]
+          if configs[:pic_save]
+            if picture
+              path = picture.image_url
+            else 
+              p = Picture.create(:caption => pic_name, :image => file, :md5 => md5)
+              path = p.image_url    
+            end
+          end
+        else
+          p = Picture.create(:caption => pic_name, :image => file, :md5 => md5)
+          path = p.image_url
+        end
+
         node << "\n"
-        node << "此处有图片: #{line.path}"
+        node << "![#{pic_name}](#{path})"
+
         return
       end
       if page.page_types.include?(:catalog)

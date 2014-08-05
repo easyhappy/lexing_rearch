@@ -743,6 +743,7 @@ class PageAnalyzer
       end
     end
     count = 0 
+    return if positions.size != images.size 
     positions.each_with_index do |position, index|
       current_page.lines.insert position + count ,  ImageLine.new(images[index])
       count += 1

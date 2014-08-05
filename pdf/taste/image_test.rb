@@ -283,6 +283,6 @@ end
 filename = "demo_1.pdf"
 extractor = ExtractImages::Extractor.new 0
 PDF::Reader.open(filename) do |reader|
-  page = reader.page(25)
-  extractor.page(page)
+  #page = reader.page(25)
+  #extractor.page(page)
 end

@@ -44,7 +44,8 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    @total_number  = 12
+    #begin_number = 147
+    #@total_number = 150
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
@@ -59,7 +60,7 @@ class PdfAnalyzer
         unless @current_3_node
           @current_3_node = all_second_level_nodes[@current_2_catalog_index].children.first
         end
-        add_line_to_node @current_4_node || @current_3_node, line, page
+        add_line_to_node @current_4_node || @current_3_node, line, page, @file_configs
       end
       puts "number is completed : #{number}"
       #binding.pry
@@ -134,6 +135,7 @@ class PdfAnalyzer
     if line.columns.size == 1 and line.columns.first.font_size == 9 \
           and (! @file_configs[:not_fourth_nodes].include? line.line_text) \
           and (! line.line_text.include?('。'))
+      return false if @current_4_node and @current_4_node.lines.empty?
       @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
       @current_3_node.children << @current_4_node
       @current_4_node.parent = @current_3_node

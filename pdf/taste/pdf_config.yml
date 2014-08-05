@@ -3,7 +3,7 @@ default: &default
 Audi+A4L+B8_cn.pdf:
   <<: *default
   car_make:                 奥迪
-  car_line:                 奥迪A4_new_one
+  car_line:                 奥迪A4_new_two
   year:                     2013
   catatlog_pages:           [4, 5, 6]
   noise_head_height:        495.3293
@@ -14,5 +14,7 @@ Audi+A4L+B8_cn.pdf:
   catalog_2_size:           7
   catalog_3_size:           6
   content_begin_page:       10
+  pic_save:                 true
+  pic_force_save:           true
   not_fourth_nodes:         ['说明', '警告！' ]
   save_db:                  true
