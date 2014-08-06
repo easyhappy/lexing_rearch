@@ -163,7 +163,7 @@ class PdfAnalyzer
   def set_current_3_node line
     return false if line.type == :image
     all_second_level_nodes[@current_2_catalog_index].children.each do |node|
-      if line.columns.first.font_size == 10 and line.line_text.include?(node.name)
+      if line.columns.first.font_size == @file_configs[:catalog_3_content_size] and line.line_text.include?(node.name)
         @current_3_node = node
         @current_4_node = nil
         return true
