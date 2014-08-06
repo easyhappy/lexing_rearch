@@ -9,11 +9,19 @@ module Analyzer
     end
 
     def is_catalog_line? text
-      text.include?('..')
+      text.include?('..') or text.include?('…')
     end
 
     def get_degist text
-      (/[0-9]+/.match text)[0]
+      if is_degist? text
+        (/[0-9]+/.match text)[0]
+      else
+        -1
+      end
+    end
+
+    def same_rank? x1, x2, abs=3
+      (x1-x2).abs < abs
     end
   end
 end

@@ -34,6 +34,7 @@ module Analyzer
       @name_and_number = nil
       if is_catalog_line? line.line_text
         splits = line.line_text.split('..')
+        splits = line.line_text.split('…') if file_is_A6?
         name = @part_name ? @part_name + splits[0] : splits[0]
         
         number = get_degist(line.columns.last.text)

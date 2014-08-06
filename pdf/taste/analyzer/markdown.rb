@@ -78,16 +78,24 @@ module Analyzer
           node << "\n"
           node << get_catalog_info(line)
           return
-        elsif /^-/.match line.line_text
-          node << get_catalog_info_for_minus(line)
+        elsif is_begin_with_minus? line
+          node << get_catalog_info_for_minus(line.line_text)
           return
         elsif /\.\./.match line.line_text
           node << line.line_text.split('..')[0]
           return
         end
       end
+
+      if is_catalog_line? line.line_text
+        if file_is_A6?
+          node << "\n"
+          node << get_catalog_info_for_minus(line.line_text.split('…')[0])
+          return
+        end
+      end
       node << "\n"
-      node << line.line_text
+      node << get_catalog_info_for_minus(line.line_text)
     end
 
     private
@@ -103,9 +111,23 @@ module Analyzer
       text.join(' ').strip
     end
 
-    def get_catalog_info_for_minus line
+    def get_catalog_info_for_minus text
       #-转向信号灯和远光灯............... 将 - 号 后面添加一个空格
-      line.line_text.split('..').first.sub('-', '- ')
+      minuses.each do |t|
+        text = text.split('..').first.sub(t, '- ')
+      end
+      return text
+    end
+
+    def is_begin_with_minus? line
+      minuses.each do |t|
+        return true if /^#{t}/.match line.line_text
+      end
+      return false
+    end
+
+    def minuses
+      ['-', '–', '–']
     end
 
     def output_catalog_to_db catalog, configs

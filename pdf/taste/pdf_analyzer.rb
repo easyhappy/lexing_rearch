@@ -25,7 +25,7 @@ class PdfAnalyzer
   end
 
   def load_configs
-    @all_configs= YAML::load(File.open('configs/config.yml')).symbolize_keys!
+    @all_configs= YAML::load(File.open('config/config.yml')).symbolize_keys!
     @file_configs = (@all_configs[@file_name.to_sym] || @all_configs[:default]).symbolize_keys!
   end
 
@@ -40,21 +40,22 @@ class PdfAnalyzer
     @current_3_node          = nil
     @current_4_node          = nil
     #begin_number = 147
-    #@total_number = 150
+    @total_number = 15
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
-      page.lines.each do |line|
+      page.lines.each_with_index do |line, index|
         next if is_page_head? line
         next if is_page_title? line
         next if is_page_footer? line
         next if content_is_title? line
         next if set_current_3_node line
         next if set_current_4_node line
-
         unless @current_3_node
           @current_3_node = all_second_level_nodes[@current_2_catalog_index].children.first
         end
+
+        #binding.pry if index >= 11
         add_line_to_node @current_4_node || @current_3_node, line, page, @file_configs
       end
       puts "number is completed : #{number}"
@@ -91,16 +92,56 @@ class PdfAnalyzer
         next if is_page_head? line
         next if is_page_title? line
         next if is_page_footer? line
-        case line.columns.first.font_size
-        when @file_configs[:catalog_1_size]
-          @main_catalogs << create_catalog_1_node(line)
-        when @file_configs[:catalog_2_size]
-          create_catalog_2_node line 
-        when @file_configs[:catalog_3_size]
-          create_catalog_3_node line
-        end
+        analyze_pdf_catalogs_for_A4 line if file_is_A4?
+        analyze_pdf_catalogs_for_A6 line if file_is_A6?
       end
     end
+  end
+
+  def analyze_pdf_catalogs_for_A6 line
+    #Audi+A6L+C7_cn.pdf的 目录解析规则
+    splits = line.line_text.split('…')
+    name = splits[0].strip
+    if same_rank? line.begin_position, @file_configs[:first_children_begin]
+      if @file_configs[:first_level_catalogs].include? name and !@main_catalogs.map(&:name).include? name
+        @main_catalogs << create_catalog_1_node(line)
+      else
+        create_catalog_2_node(line)
+      end
+      return
+    elsif same_rank? line.begin_position, @file_configs[:second_children_begin]
+      if @file_configs[:first_level_catalogs].include? name and !@main_catalogs.map(&:name).include? name
+        @main_catalogs << create_catalog_1_node(line)
+      else
+        create_catalog_2_node(line)
+      end
+      return
+    end
+    if same_rank?(line.begin_position, @file_configs[:first_children_begin], 10) \
+        or same_rank?(line.begin_position, @file_configs[:second_children_begin], 10)
+      create_catalog_3_node line
+    end
+    #create_catalog_3_node line
+  end
+
+  def file_is_A6?
+    @file_name == 'Audi+A6L+C7_cn.pdf'
+  end
+
+  def analyze_pdf_catalogs_for_A4 line
+    #Audi+A4L+B8_cn.pdf的 目录解析规则
+    case line.columns.first.font_size
+    when @file_configs[:catalog_1_size]
+      @main_catalogs << create_catalog_1_node(line)
+    when @file_configs[:catalog_2_size]
+      create_catalog_2_node line 
+    when @file_configs[:catalog_3_size]
+      create_catalog_3_node line
+    end
+  end
+
+  def file_is_A4?
+    @file_name == 'Audi+A4L+B8_cn.pdf'
   end
 
   def is_page_head? line
@@ -110,7 +151,7 @@ class PdfAnalyzer
 
   def content_is_title? line
     return false if line.type == :image
-    return true if line.columns.first.font_size == 12 and line.line_text.include?(@current_2_catalog.name)
+    return true if line.columns.first.font_size == @file_configs[:page_title_size] and line.line_text.include?(@current_2_catalog.name)
   end
 
   def set_current_3_node line
@@ -162,5 +203,6 @@ class PdfAnalyzer
   end
 end
 
-analyzer = PdfAnalyzer.new 'Audi+A4L+B8_cn.pdf'
+files = ['Audi+A4L+B8_cn.pdf', 'Audi+A6L+C7_cn.pdf']
+analyzer = PdfAnalyzer.new files[1]
 analyzer.run
