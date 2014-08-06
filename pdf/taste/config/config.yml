@@ -1,6 +1,7 @@
 default: &default
   test: '1'
   first_level_catalogs:     ['关于本使用说明书', '操作', '安全', '驾驶指南', '维护指南', '自救', '技术数据']
+  noise_right_side_begin:   10000
 Audi+A4L+B8_cn.pdf:
   <<: *default
   car_make:                 奥迪
@@ -29,6 +30,7 @@ Audi+A6L+C7_cn.pdf:
   noise_head_height:        7000  #此pdf head 没有内容
   noise_footer_height:      73.2293
   page_title_height:        600.438
+  noise_right_side_begin:   448.7788
   first_children_begin:     77.1019 #页面中 第一子页面的开始横坐标
   second_children_begin:    259.6513 #页面中 第二子页面的开始横坐标
   page_title_size:          7

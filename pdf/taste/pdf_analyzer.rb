@@ -48,6 +48,7 @@ class PdfAnalyzer
         next if is_page_head? line
         next if is_page_title? line
         next if is_page_footer? line
+        next if is_page_right_bar? line
         next if content_is_title? line
         next if set_current_3_node line
         next if set_current_4_node line
@@ -147,6 +148,11 @@ class PdfAnalyzer
   def is_page_head? line
     return false if line.type == :image
     strict_same_line? line.height, @file_configs[:noise_head_height], 3
+  end
+
+  def is_page_right_bar? line
+    return false if line.type == :image
+    same_rank? line.begin_position, @file_configs[:noise_right_side_begin]
   end
 
   def content_is_title? line
