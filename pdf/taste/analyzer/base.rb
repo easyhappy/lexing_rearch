@@ -23,5 +23,13 @@ module Analyzer
     def same_rank? x1, x2, abs=3
       (x1-x2).abs < abs
     end
+
+    def text_include_special_symbol? text
+      #特殊符号
+      ['，', '…', '√', '[0-9]+页', '\*', '：', '–', '！', '-', '^请'].each do |symbol|
+        return true if /#{symbol}/.match text
+      end
+      return false
+    end
   end
 end

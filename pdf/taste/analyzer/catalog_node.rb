@@ -12,5 +12,15 @@ module Analyzer
     def << line
       @lines << line
     end
+
+    def absolute_names
+      parents = [name]
+      p = parent
+      while p
+        parents << p.name
+        p = p.parent
+      end
+      parents.reverse.join('|--|')
+    end
   end
 end

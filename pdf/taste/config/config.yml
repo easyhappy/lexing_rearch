@@ -16,6 +16,7 @@ Audi+A4L+B8_cn.pdf:
   catalog_2_size:           7
   catalog_3_size:           6
   catalog_3_content_size:   10 #在一个页面中， 一个3级目录文字的字体是10
+  catalog_4_content_size:   9  #在一个页面中， 一个3级目录文字的字体是9
   content_begin_page:       10
   pic_save:                 true
   pic_force_save:           false
@@ -34,13 +35,16 @@ Audi+A6L+C7_cn.pdf:
   noise_right_side_begin:   448.7788
   first_children_begin:     77.1019 #页面中 第一子页面的开始横坐标
   second_children_begin:    259.6513 #页面中 第二子页面的开始横坐标
+  children_page_width:      154.65000000000003 #子页面的宽度
   page_title_size:          11
   catalog_1_size:           9
   catalog_2_size:           7
   catalog_3_size:           6
   catalog_3_content_size:   11 #在一个页面中， 一个3级目录文字的字体是10
-  content_begin_page:       6
+  catalog_4_content_size:   7  #在一个页面中， 一个3级目录文字的字体是7
+  content_begin_page:       9
   pic_save:                 false
   pic_force_save:           false
-  not_fourth_nodes:         ['说明', '警告！', '提示']
+  not_fourth_nodes:         ['警告！', '提示', '小心', '警告', '低温区', '环保指南', '请松开驻车制动器']
   save_db:                  true
+  generate_catalogs:        true #用于生成所有的目录， 因为A6的目录有点特殊， 需要人工审核

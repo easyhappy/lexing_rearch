@@ -40,11 +40,12 @@ class PdfAnalyzer
     @current_3_node          = nil
     @current_4_node          = nil
     #begin_number = 147
-    @total_number = 15
+    #@total_number = 15
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
       page.lines.each_with_index do |line, index|
+        binding.pry if number == 13 and index == 60
         next if is_page_head? line
         next if is_page_title? line
         next if is_page_footer? line
@@ -174,13 +175,49 @@ class PdfAnalyzer
 
   def set_current_4_node line
     return false if line.type == :image
-    if line.columns.size == 1 and line.columns.first.font_size == 9 \
+    return set_current_4_node_for_A4 line if file_is_A4?
+    return set_current_4_node_for_A6 line if file_is_A6?
+  end
+
+  def set_current_4_node_for_A4 line
+    #Audi+A4L+B8_cn.pdf的 第四级node的选取
+    if line.columns.size == 1 and line.columns.first.font_size == @file_configs[:catalog_4_content_size] \
           and (! @file_configs[:not_fourth_nodes].include? line.line_text) \
           and (! line.line_text.include?('。'))
       return false if @current_4_node and @current_4_node.lines.empty?
       @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
       @current_3_node.children << @current_4_node
       @current_4_node.parent = @current_3_node
+      return true
+    end
+    return false
+  end
+
+  def set_current_4_node_for_A6 line
+    #Audi+A6L+C7_cn.pdf的 第四级node的选取
+    
+    return false if is_catalog_line? line.line_text
+    return false if text_include_special_symbol? line.line_text
+    #去除最右边的 边栏数据
+    if line.begin_position > @file_configs[:second_children_begin] - 5
+      new_columns = []
+      line.columns.each do |col|
+        new_columns << col unless same_rank? col.last_position, @file_configs[:noise_right_side_begin], 5
+      end
+      line.columns = new_columns
+    end
+
+    return false if (line.end_position-line.begin_position-@file_configs[:children_page_width]).abs < 5
+    #去除一些表格中的数据
+    return false unless same_rank? line.begin_position, @file_configs[:first_children_begin], 20 or same_rank? line.begin_position, @file_configs[:second_children_begin], 20
+    if line.columns.size == 1 and line.columns.first.font_size == @file_configs[:catalog_4_content_size] \
+          and (! @file_configs[:not_fourth_nodes].include? line.line_text) \
+          and (! line.line_text.include?('。'))
+      return false if @current_4_node and @current_4_node.lines.empty?
+      @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
+      @current_3_node.children << @current_4_node
+      @current_4_node.parent = @current_3_node
+
       return true
     end
     return false

@@ -23,6 +23,12 @@ module Analyzer
       main_catalogs[1..-1].each do |catalog|
         output_leaf_nodes catalog, configs
       end
+
+      #return unless file_is_A6?
+      @catalogs_file = File.new(file_name.split('.pdf')[0] + '_catalogs.txt', 'w')
+      main_catalogs.each do |catalog|
+        output_catalog_to_file catalog
+      end
     end
 
     def output_leaf_nodes catalog, configs
@@ -113,8 +119,13 @@ module Analyzer
 
     def get_catalog_info_for_minus text
       #-转向信号灯和远光灯............... 将 - 号 后面添加一个空格
-      minuses.each do |t|
-        text = text.split('..').first.sub(t, '- ')
+      origin_text = text
+      begin
+        minuses.each do |t|
+          text = text.split('..').first.sub(t, '- ')
+        end
+      rescue Exception => e
+        text = origin_text
       end
       return text
     end
@@ -187,6 +198,15 @@ module Analyzer
     def find_car_line configs
       @car_make = CarMake.find_by_name configs[:car_make]
       @car_line = CarLine.find_or_create_by :name => configs[:car_line], :annum => configs[:year], :car_make => @car_make
+    end
+
+    def output_catalog_to_file catalog
+      if catalog.children.empty?
+        @catalogs_file.write "#{catalog.absolute_names}\n"
+      end
+      catalog.children.each do |child|
+        output_catalog_to_file child
+      end
     end
   end
 end
