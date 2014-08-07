@@ -31,5 +31,9 @@ module Analyzer
       end
       return false
     end
+
+    def is_special_4_level_node? line
+      ["SET  （设置）按钮", "自动运行模式  AUTO", "打开/关闭制冷设备  AC  （空调自动运行）"].include? line.line_text
+    end
   end
 end

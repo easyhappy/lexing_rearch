@@ -17,8 +17,11 @@ Audi+A4L+B8_cn.pdf:
   catalog_3_size:           6
   catalog_3_content_size:   10 #在一个页面中， 一个3级目录文字的字体是10
   catalog_4_content_size:   9  #在一个页面中， 一个3级目录文字的字体是9
+  first_children_begin:     433.68 #页面中 第一子页面的开始横坐标
+  second_children_begin:    694.4999 #页面中 第二子页面的开始横坐标
+  children_page_width:      216 #子页面的宽度
   content_begin_page:       10
-  pic_save:                 true
+  pic_save:                 false
   pic_force_save:           false
   not_fourth_nodes:         ['说明', '警告！' ]
   save_db:                  true

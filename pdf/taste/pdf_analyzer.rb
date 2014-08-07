@@ -39,13 +39,13 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    #begin_number = 147
-    #@total_number = 15
+    begin_number = 115
+    #@total_number = 100
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
       page.lines.each_with_index do |line, index|
-        binding.pry if number == 13 and index == 60
+        binding.pry if number == 115
         next if is_page_head? line
         next if is_page_title? line
         next if is_page_footer? line
@@ -164,12 +164,21 @@ class PdfAnalyzer
   def set_current_3_node line
     return false if line.type == :image
     all_second_level_nodes[@current_2_catalog_index].children.each do |node|
-      if line.columns.first.font_size == @file_configs[:catalog_3_content_size] and line.line_text.include?(node.name)
+      if line.columns.last.font_size == @file_configs[:catalog_3_content_size] and line.line_text  == node.name
         @current_3_node = node
         @current_4_node = nil
         return true
       end
     end
+
+    all_second_level_nodes[@current_2_catalog_index].children.each do |node|
+      if line.columns.last.font_size == @file_configs[:catalog_3_content_size] and line.line_text.include?(node.name)
+        @current_3_node = node
+        @current_4_node = nil
+        return true
+      end
+    end
+
     return false
   end
 
@@ -180,16 +189,36 @@ class PdfAnalyzer
   end
 
   def set_current_4_node_for_A4 line
+    return false if is_catalog_line? line.line_text
+    return false if text_include_special_symbol? line.line_text
+    return false if (line.end_position-line.begin_position-@file_configs[:children_page_width]).abs < 5
     #Audi+A4L+B8_cn.pdf的 第四级node的选取
-    if line.columns.size == 1 and line.columns.first.font_size == @file_configs[:catalog_4_content_size] \
+    if line.columns.size == 2
+      #解决有的特殊字体的大小是10 或者8 带来的干扰
+      size = line.columns.map(&:font_size).include?(9) ? 9 : -1
+    else
+      size = line.columns.first.font_size
+    end
+    if (line.columns.size < 3 and size == @file_configs[:catalog_4_content_size] \
           and (! @file_configs[:not_fourth_nodes].include? line.line_text) \
-          and (! line.line_text.include?('。'))
+          and (! line.line_text.include?('。'))) or is_special_4_level_node? line
       return false if @current_4_node and @current_4_node.lines.empty?
       @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
       @current_3_node.children << @current_4_node
       @current_4_node.parent = @current_3_node
       return true
     end
+
+    #准对 有些是 说明是提示 有些说明是 四级标题
+    if line.line_text == '说明' and ((same_rank? line.begin_position, @file_configs[:first_children_begin])or (same_rank? line.begin_position, @file_configs[:second_children_begin])) and size == @file_configs[:catalog_4_content_size]
+      return false if @current_4_node and @current_4_node.lines.empty?
+      @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
+      @current_3_node.children << @current_4_node
+      @current_4_node.parent = @current_3_node
+      return true    
+    end
+
+
     return false
   end
 
@@ -247,5 +276,5 @@ class PdfAnalyzer
 end
 
 files = ['Audi+A4L+B8_cn.pdf', 'Audi+A6L+C7_cn.pdf']
-analyzer = PdfAnalyzer.new files[1]
+analyzer = PdfAnalyzer.new files[0]
 analyzer.run
