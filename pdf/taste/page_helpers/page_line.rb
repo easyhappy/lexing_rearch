@@ -31,4 +31,5 @@ class PageLine
   def line_text
     columns.map(&:text).join("  ")
   end
+  alias :to_s :line_text
 end

@@ -15,8 +15,9 @@ Audi+A4L+B8_cn.pdf:
   catalog_1_size:           9
   catalog_2_size:           7
   catalog_3_size:           6
+  catalog_2_content_size:   12 #在一个页面中， 一个2级目录文字的字体是12
   catalog_3_content_size:   10 #在一个页面中， 一个3级目录文字的字体是10
-  catalog_4_content_size:   9  #在一个页面中， 一个3级目录文字的字体是9
+  catalog_4_content_size:   9  #在一个页面中， 一个4级目录文字的字体是9
   first_children_begin:     433.68 #页面中 第一子页面的开始横坐标
   second_children_begin:    694.4999 #页面中 第二子页面的开始横坐标
   children_page_width:      216 #子页面的宽度

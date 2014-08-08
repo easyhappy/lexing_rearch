@@ -39,13 +39,13 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    begin_number = 115
-    #@total_number = 100
+    begin_number = 150
+    @total_number = 200
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
       page.lines.each_with_index do |line, index|
-        binding.pry if number == 115
+        #binding.pry if number == 132
         next if is_page_head? line
         next if is_page_title? line
         next if is_page_footer? line
@@ -68,17 +68,17 @@ class PdfAnalyzer
   end
 
   def find_page_title page
-    if page.page_title
-      title = page.page_title
-    else
-      page.lines.each do |line|
-        title = line.line_text and break if is_page_title? line
-      end
+    title = page.page_title
+    page.lines.each do |line|
+      title = line.line_text and break if is_page_title? line
     end
     all_second_level_nodes.each_with_index do |node, index|
       next if @current_2_catalog_index > index
       if title.include?(node.name)
         @current_2_catalog_index = index
+        unless @current_2_catalog == all_second_level_nodes[@current_2_catalog_index]
+          @current_3_node = all_second_level_nodes[@current_2_catalog_index].children.first
+        end
         @current_2_catalog = all_second_level_nodes[@current_2_catalog_index]
         return node.name
       end
@@ -163,8 +163,9 @@ class PdfAnalyzer
 
   def set_current_3_node line
     return false if line.type == :image
+    size = line.columns.map(&:font_size).max
     all_second_level_nodes[@current_2_catalog_index].children.each do |node|
-      if line.columns.last.font_size == @file_configs[:catalog_3_content_size] and line.line_text  == node.name
+      if size == @file_configs[:catalog_3_content_size] and line.line_text.gsub(' ', '') == node.name.gsub(' ', '')
         @current_3_node = node
         @current_4_node = nil
         return true
@@ -172,7 +173,7 @@ class PdfAnalyzer
     end
 
     all_second_level_nodes[@current_2_catalog_index].children.each do |node|
-      if line.columns.last.font_size == @file_configs[:catalog_3_content_size] and line.line_text.include?(node.name)
+      if line.columns.last.font_size == @file_configs[:catalog_3_content_size] and line.line_text.gsub(' ', '').include?(node.name.gsub(' ', ''))
         @current_3_node = node
         @current_4_node = nil
         return true
@@ -259,6 +260,9 @@ class PdfAnalyzer
 
   def is_page_title? line
     return false if line.type == :image
+    if file_is_A4?
+      return true if line.columns.size == 1 and line.columns.first.font_size == @file_configs[:catalog_2_content_size]
+    end
     strict_same_line? line.height, @file_configs[:page_title_height]
   end
 
