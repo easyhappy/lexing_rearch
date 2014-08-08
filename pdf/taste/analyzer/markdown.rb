@@ -1,6 +1,4 @@
-require 'active_record'
-require 'mysql2'
-
+require 'models/connect_mysql'
 require 'models/car_line'
 require 'models/car_make'
 require 'models/car_model'
@@ -9,14 +7,6 @@ require 'models/picture'
 
 module Analyzer
   module Markdown
-    ActiveRecord::Base.establish_connection(
-      :adapter  => "mysql2",
-      :host     => "localhost",
-      :username => "root",
-      :password => "",
-      :database => "wheel_development"
-    )
-
     def output_to_markdown_file main_catalogs, file_name, configs
       find_car_line configs
       @markdown_file = File.new(file_name.split('.pdf')[0] + '.md', 'w')
