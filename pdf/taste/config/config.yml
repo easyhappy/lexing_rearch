@@ -5,7 +5,7 @@ default: &default
 Audi+A4L+B8_cn.pdf:
   <<: *default
   car_make:                 奥迪
-  car_line:                 奥迪A4_new_two
+  car_line:                 奥迪A4
   year:                     2013
   catatlog_pages:           [4, 5, 6]
   noise_head_height:        495.3293
@@ -22,7 +22,7 @@ Audi+A4L+B8_cn.pdf:
   second_children_begin:    694.4999 #页面中 第二子页面的开始横坐标
   children_page_width:      216 #子页面的宽度
   content_begin_page:       10
-  pic_save:                 false
+  pic_save:                 true
   pic_force_save:           false
   not_fourth_nodes:         ['说明', '警告！' ]
   save_db:                  true

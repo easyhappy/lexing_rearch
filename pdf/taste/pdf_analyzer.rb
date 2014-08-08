@@ -39,8 +39,8 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    begin_number = 150
-    @total_number = 200
+    #begin_number = 150
+    #@total_number = 200
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
