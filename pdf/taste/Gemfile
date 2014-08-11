@@ -16,4 +16,4 @@ gem 'carrierwave-qiniu'
 gem 'slim'
 gem 'linguo'
 gem "mini_magick"
-
+gem 'nokogiri'

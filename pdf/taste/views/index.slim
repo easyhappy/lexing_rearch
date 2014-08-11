@@ -58,7 +58,7 @@
 
 - @analyzer.current_pages.last.lines.each_with_index do |line, index|
   - if line.type == :image
-    img src="/images/#{line.path}" style="wdith: 200px; height: 200px"
+    img src="/images/#{line.path.gsub('+', '%2B')}" style="wdith: 200px; height: 200px"
     br
     - next
 

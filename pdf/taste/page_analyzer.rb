@@ -15,6 +15,7 @@ require 'page_helpers/page'
 require 'page_helpers/page_line'
 require 'page_helpers/image_line'
 require 'page_helpers/content_column'
+require 'image_handler'
 
 class PageAnalyzer
   attr_accessor :file_name, :current_pages, :current_page, :max_width, :pdf_reader, :current_children_page_number, :total_number
@@ -337,7 +338,7 @@ class PageAnalyzer
       char_hash.each do |key, char_list|
         char_hash[key] = char_list.sort_by(&:x)
       end
-    end 
+    end
 
     new_chars = new_characters.map do |char_hash|
       char_hash.sort.reverse.map(&:last)
@@ -548,6 +549,8 @@ use Rack::Static, :urls => ["/images"], :root => "public"
 set :slim, :pretty => true
 register Sinatra::StaticAssets
 
+
+
 get '/' do
 
   @files = ['Audi+A4L+B8_cn.pdf', 'Audi+A5_cn.pdf', 
@@ -558,8 +561,13 @@ get '/' do
   analyzer = PageAnalyzer.new('demo_1.pdf')
   page_number = params[:page] || 2
   analyzer.analyzer_page_with_number page_number.to_i - 1
-  @images = analyzer.analyzer_image_with_number page_number.to_i
-  analyzer.merge_images_and_text @images
+  #@images = analyzer.analyzer_image_with_number page_number.to_i
+  base_path = './public/images/Audi_A4'
+  path = "Audi+A4L+B8_cn.htm"
+  handler = ImageHandler.new(base_path, path, 'Audi_A4')
+  handler.run
+
+  analyzer.merge_images_and_text handler.page_image(page_number.to_i-1)
   analyzer.analyze_page_type analyzer.current_pages.last
   @first_page = analyzer.current_pages.first
   @current_page = analyzer.current_page

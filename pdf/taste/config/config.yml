@@ -2,16 +2,18 @@ default: &default
   test: '1'
   first_level_catalogs:     ['关于本使用说明书', '操作', '安全', '驾驶指南', '维护指南', '自救', '技术数据']
   noise_right_side_begin:   10000
+  is_increment:             true #增量插入.
+
 Audi+A4L+B8_cn.pdf:
   <<: *default
   car_make:                 奥迪
   car_line:                 奥迪A4
   year:                     2013
   catatlog_pages:           [4, 5, 6]
-  noise_head_height:        495.3293
-  noise_footer_height:      73.2293
-  page_title_height:        468.0293
-  page_title_size:          12
+  noise_head_height:        495.3293 #一个页面中， 头部的高度 既是y轴
+  noise_footer_height:      73.2293  #footer的高度
+  page_title_height:        468.0293 #的高度
+  page_title_size:          12       
   catalog_1_size:           9
   catalog_2_size:           7
   catalog_3_size:           6
@@ -22,10 +24,10 @@ Audi+A4L+B8_cn.pdf:
   second_children_begin:    694.4999 #页面中 第二子页面的开始横坐标
   children_page_width:      216 #子页面的宽度
   content_begin_page:       10
-  pic_save:                 true
+  pic_save:                 false
   pic_force_save:           false
   not_fourth_nodes:         ['说明', '警告！' ]
-  save_db:                  true
+  save_db:                  false
 
 Audi+A6L+C7_cn.pdf:
   <<: *default
