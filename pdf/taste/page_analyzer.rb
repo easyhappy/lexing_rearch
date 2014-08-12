@@ -557,13 +557,14 @@ get '/' do
     'Audi+A6L+C7_cn.pdf', 'Audi+A6l+C7+MMI_cn.pdf', 'Audi+A8+D4_cn.pdf',
     'Audi+MMI+Navigation+plus+mit+RSE(D4)_cn.pdf', 'Audi+Q5_cn.pdf', 
     'Audi+Q7_cn.pdf']
-  FileUtils.cp("../test/#{@files[(params[:file].to_i | 0)]}", 'demo_1.pdf')
+  file = @files[(params[:file].to_i | 0)]
+  FileUtils.cp("../test/#{file}", 'demo_1.pdf')
   analyzer = PageAnalyzer.new('demo_1.pdf')
   page_number = params[:page] || 2
   analyzer.analyzer_page_with_number page_number.to_i - 1
   #@images = analyzer.analyzer_image_with_number page_number.to_i
-  base_path = './public/images/Audi_A4'
-  path = "Audi+A4L+B8_cn.htm"
+  base_path = './public/images'
+  path = "#{file.split('.')[0]}.htm"
   handler = ImageHandler.new(base_path, path)
   handler.run
 
