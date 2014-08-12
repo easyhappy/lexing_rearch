@@ -1,0 +1,17 @@
+- @files.each_with_index do |file, index|
+  = index
+  = '-'*10
+  = file
+  br
+
+- @images.each_with_index do |image, index|
+  img src="/images/#{image.gsub('+', '%2B')}" style="wdith: 200px; height: 200px"
+  br
+  br
+  br
+  br
+  = @pic_paths[index]
+  br
+  br
+  br
+  br

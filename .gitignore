@@ -9,5 +9,7 @@ pdf/taste/*.pdf
 pdf/taste/*.md
 pdf/taste/*.txt
 pdf/taste/models/connect_mysql.rb
+pdf/taste/models/connect_remote_mysql.rb
 pdf/data/*
 A8_icon_little/*
+pdf/taste/public/uploads/*

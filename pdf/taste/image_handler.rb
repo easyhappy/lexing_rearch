@@ -11,10 +11,9 @@ class ImageColumn
 end
 
 class ImageHandler
-  def initialize base_path, file_name, image_path
+  def initialize base_path, file_name
     @file_name = File.join(base_path, file_name)
     @base_path = base_path
-    @image_path = image_path
   end
 
   def run
@@ -42,8 +41,7 @@ class ImageHandler
 
   def output
     @images.each do |index, imgs|
-      next if imgs.empty?
-      puts "#{index}: #{imgs.join('|--|')}"
+      next if imgs.empty?≈
     end
   end
 

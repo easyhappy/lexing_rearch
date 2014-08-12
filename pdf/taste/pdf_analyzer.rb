@@ -266,8 +266,7 @@ class PdfAnalyzer
     strict_same_line? line.height, @file_configs[:page_title_height]
   end
 
-  def analyze_one_page number
-    
+  def analyze_one_page number 
     page_analyzer = PageAnalyzer.new('demo.pdf')
     @total_number = page_analyzer.total_number
 
