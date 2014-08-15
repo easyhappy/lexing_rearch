@@ -13,4 +13,4 @@ pdf/taste/models/connect_remote_mysql.rb
 pdf/data/*
 A8_icon_little/*
 pdf/taste/public/uploads/*
-pdf/taste/config/initializers/carrierwave_qiniu.rb
+pdf/taste/config/initializers/carrierwave.rb

@@ -39,12 +39,15 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    #begin_number = 150
-    #@total_number = 15
+    begin_number = 30
+    @total_number = 55
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
+      @current_page = page
+      @current_number = number
       page.lines.each_with_index do |line, index|
+        @current_index = index
         #binding.pry if number == 132
         next if is_page_head? line
         next if is_page_title? line
@@ -56,7 +59,6 @@ class PdfAnalyzer
         unless @current_3_node
           @current_3_node = all_second_level_nodes[@current_2_catalog_index].children.first
         end
-
         #binding.pry if index >= 11
         add_line_to_node @current_4_node || @current_3_node, line, page, @file_configs
       end
@@ -90,7 +92,9 @@ class PdfAnalyzer
     page_numbers = @file_configs[:catatlog_pages]
     page_numbers.each do |number|
       page = analyze_one_page(number)
-      page.lines.each do |line|
+      @current_page = page
+      page.lines.each_with_index do |line, index|
+        @current_index = index
         next if is_page_head? line
         next if is_page_title? line
         next if is_page_footer? line
@@ -171,7 +175,6 @@ class PdfAnalyzer
         return true
       end
     end
-
     all_second_level_nodes[@current_2_catalog_index].children.each do |node|
       if line.columns.last.font_size == @file_configs[:catalog_3_content_size] and line.line_text.gsub(' ', '').include?(node.name.gsub(' ', ''))
         @current_3_node = node
@@ -179,7 +182,17 @@ class PdfAnalyzer
         return true
       end
     end
+    set_special_current_3_node_for_A6 line
+  end
 
+  def set_special_current_3_node_for_A6 line
+    return false if line.type == :image
+    return false unless file_is_A6?
+    #针对45页 三级目录 车内照明灯 和 内部照明 是同一个 目录的问题
+    if @current_number == 45 and line.line_text == '内部照明'
+      line.columns.first.text = '车内照明灯'
+      return set_current_3_node line
+    end
     return false
   end
 
@@ -219,14 +232,23 @@ class PdfAnalyzer
       return true    
     end
 
-
     return false
   end
 
   def set_current_4_node_for_A6 line
     #Audi+A6L+C7_cn.pdf的 第四级node的选取
-    
+
     return false if is_catalog_line? line.line_text
+
+    #如果 下一行是 以适用于: 文字。 那么可以认为 本行是四级目录
+    if line.columns.first.font_size == @file_configs[:catalog_4_content_size] \
+      and is_desription_for_4_level_node? @current_page.lines[@current_index+1]
+      return false if @current_4_node and @current_4_node.lines.empty?
+      @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
+      @current_3_node.children << @current_4_node
+      @current_4_node.parent = @current_3_node
+    end
+
     return false if text_include_special_symbol? line.line_text
     #去除最右边的 边栏数据
     if line.begin_position > @file_configs[:second_children_begin] - 5
@@ -236,6 +258,10 @@ class PdfAnalyzer
       end
       line.columns = new_columns
     end
+
+    #根据结束位置 判断是否是 4级目录
+    return false if same_rank?(line.end_position, @file_configs[:first_children_end])
+    return false if same_rank?(line.end_position, @file_configs[:second_children_end])
 
     return false if (line.end_position-line.begin_position-@file_configs[:children_page_width]).abs < 5
     #去除一些表格中的数据
@@ -247,7 +273,6 @@ class PdfAnalyzer
       @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
       @current_3_node.children << @current_4_node
       @current_4_node.parent = @current_3_node
-
       return true
     end
     return false
@@ -266,6 +291,11 @@ class PdfAnalyzer
     strict_same_line? line.height, @file_configs[:page_title_height]
   end
 
+  def is_desription_for_4_level_node? line
+    return false unless line
+    return true if /适用于：/.match line.line_text and line.columns.first.font_size == 6
+  end
+
   def analyze_one_page number 
     page_analyzer = PageAnalyzer.new('demo.pdf')
     @total_number = page_analyzer.total_number
@@ -278,6 +308,6 @@ class PdfAnalyzer
   end
 end
 
-files = ['Audi+A4L+B8_cn.pdf', 'Audi+A6L+C7_cn.pdf']
+files = ['Audi+A6L+C7_cn.pdf']
 analyzer = PdfAnalyzer.new files[0]
 analyzer.run

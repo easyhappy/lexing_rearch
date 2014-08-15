@@ -10,9 +10,9 @@ module Analyzer
     def output_to_markdown_file main_catalogs, file_name, configs
       find_car_line configs
       @markdown_file = File.new(file_name.split('.pdf')[0] + '.md', 'w')
-      main_catalogs[1..-1].each do |catalog|
-        output_leaf_nodes catalog, configs
-      end
+      #main_catalogs[1..-1].each do |catalog|
+      #  output_leaf_nodes catalog, configs
+      #end
 
       #return unless file_is_A6?
       @catalogs_file = File.new(file_name.split('.pdf')[0] + '_catalogs.txt', 'w')
@@ -194,6 +194,7 @@ module Analyzer
       if catalog.children.empty?
         @catalogs_file.write "#{catalog.absolute_names}\n"
       end
+
       catalog.children.each do |child|
         output_catalog_to_file child
       end

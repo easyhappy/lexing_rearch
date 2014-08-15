@@ -580,20 +580,3 @@ get '/' do
   slim :index
 end
 
-get '/imgs' do
-=begin
-  @files = ['Audi+A4L+B8_cn.pdf', 'Audi+A5_cn.pdf', 
-    'Audi+A6L+C7_cn.pdf', 'Audi+A6l+C7+MMI_cn.pdf', 'Audi+A8+D4_cn.pdf',
-    'Audi+MMI+Navigation+plus+mit+RSE(D4)_cn.pdf', 'Audi+Q5_cn.pdf', 
-    'Audi+Q7_cn.pdf']
-=end
-  @files = ['Audi+A4L+B8_cn.pdf','Audi+A8+D4_cn.pdf']
-  file = @files[params[:file].to_i]
-  base_path = './public/images/'
-  path = "#{file.split('.')[0]}.htm"
-  handler = ImageHandler.new(base_path, path)
-  handler.run
-  @images = handler.page_image((params[:page] || 1).to_i-1)
-  slim :images
-end
-

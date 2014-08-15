@@ -9,7 +9,7 @@ module Analyzer
     end
 
     def is_catalog_line? text
-      text.include?('..') or text.include?('…')
+      text.include?('..') or text.include?('…') or text.include?('；')
     end
 
     def get_degist text
