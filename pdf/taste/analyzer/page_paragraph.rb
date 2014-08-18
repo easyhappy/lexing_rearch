@@ -1,4 +1,5 @@
 require 'base'
+require 'models/picture'
 
 class PageParagraph
   attr_accessor :current_page, :line_indexes, :type, :file_configs
@@ -34,7 +35,7 @@ class PageParagraph
     when :table
       return analyzer_table_lines
     when :image
-      return self
+      return analyze_image_lines
     when :common
       return analyzer_common_lines
     end
@@ -54,7 +55,7 @@ class PageParagraph
         return "**#{line.line_text}**\n"
       end
     end
-    @line_indexes.map {|index| @current_page.lines[index].line_text }.join('') + "\n"
+    @line_indexes.map {|index| get_format_text @current_page.lines[index].line_text }.join('') + "\n"
   end
 
   def analyzer_table_lines
@@ -86,4 +87,28 @@ class PageParagraph
     end
     new_lines.map {|line| line unless line == ''}.compact
   end
+
+  def analyze_image_lines
+    line = @current_page.lines[@line_indexes[0]]
+    pic_name = line.path.split('.')[0]
+    file = File.new(File.join("./public/images/", line.path))
+    md5  = Digest::MD5.hexdigest(file.read)
+    picture = Picture.find_by_md5(md5)
+    path = line.path
+    if picture
+      if @file_configs[:pic_force_save]
+        picture.image = file
+        picture.save
+        path = picture.image_url
+      end
+    else
+      if @file_configs[:pic_save]
+         p = Picture.create(:caption => pic_name, :image => file, :md5 => md5)
+        path = p.image_url
+      end
+    end
+    pic_info = "![#{pic_name}](#{path})\n"
+    [pic_info, @current_page.lines[@line_indexes[1]]].join("\n") + "\n"
+  end
+
 end

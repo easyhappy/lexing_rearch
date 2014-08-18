@@ -7,6 +7,7 @@ require 'fileutils'
 require 'active_support/all'
 
 require 'page_analyzer'
+require 'image_handler'
 require 'analyzer/pdf_catalog'
 require 'analyzer/catalog_node'
 require 'analyzer/page_paragraph'
@@ -35,6 +36,11 @@ class PdfAnalyzer
   end
 
   def run
+    base_path = './public/images/'
+    path = "#{@file_name.split('.')[0]}.htm"
+    @image_handler = ImageHandler.new(base_path, path)
+    @image_handler.run
+    
     analyze_pdf_catalogs
     analyze_pdf_content_by_catalogs
   end
@@ -45,7 +51,7 @@ class PdfAnalyzer
     @current_3_node          = nil
     @current_4_node          = nil
     #begin_number = 38
-    @total_number = 40
+    @total_number = 25
 
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
@@ -55,7 +61,6 @@ class PdfAnalyzer
       @current_number = number
       @current_garaprah = nil
       @current_index = 0
-
       while true
         line = get_current_line @current_index
         unless line
@@ -70,6 +75,7 @@ class PdfAnalyzer
         @current_index += 1 and next if set_current_4_node line
         unless @current_3_node
           @current_3_node = all_second_level_nodes[@current_2_catalog_index].children.first
+          @current_3_node.is_writed = true
         end
         #binding.pry if index >= 11
         fetch_paragraph_from_page line
@@ -95,8 +101,11 @@ class PdfAnalyzer
         @current_2_catalog_index = index
         unless @current_2_catalog == all_second_level_nodes[@current_2_catalog_index]
           @current_3_node = all_second_level_nodes[@current_2_catalog_index].children.first
+          @current_3_node.is_writed = true
         end
         @current_2_catalog = all_second_level_nodes[@current_2_catalog_index]
+        @current_2_catalog.is_writed = true
+        @current_2_catalog.parent.is_writed = true
         return node.name
       end
     end
@@ -186,6 +195,7 @@ class PdfAnalyzer
     all_second_level_nodes[@current_2_catalog_index].children.each do |node|
       if size == @file_configs[:catalog_3_content_size] and line.line_text.gsub(' ', '') == node.name.gsub(' ', '')
         @current_3_node = node
+        @current_3_node.is_writed = true
         @current_4_node = nil
         return true
       end
@@ -193,6 +203,7 @@ class PdfAnalyzer
     all_second_level_nodes[@current_2_catalog_index].children.each do |node|
       if line.columns.last.font_size == @file_configs[:catalog_3_content_size] and line.line_text.gsub(' ', '').include?(node.name.gsub(' ', ''))
         @current_3_node = node
+        @current_3_node.is_writed = true
         @current_4_node = nil
         return true
       end
@@ -269,6 +280,7 @@ class PdfAnalyzer
       end
 
       @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
+      @current_4_node.is_writed = true
       @current_3_node.children << @current_4_node
       @current_4_node.parent = @current_3_node
     end
@@ -287,6 +299,7 @@ class PdfAnalyzer
           and (! line.line_text.include?('。'))
       return false if @current_4_node and @current_4_node.lines.empty?
       @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
+      @current_4_node.is_writed = true
       @current_3_node.children << @current_4_node
       @current_4_node.parent = @current_3_node
       return true
@@ -364,7 +377,7 @@ class PdfAnalyzer
     @total_number = page_analyzer.total_number
 
     page_analyzer.analyzer_page_with_number number.to_i - 1
-    images = page_analyzer.analyzer_image_with_number number.to_i
+    images = @image_handler.page_image number.to_i - 1
     page_analyzer.merge_images_and_text images
     page_analyzer.analyze_page_type page_analyzer.current_pages.last
     page_analyzer.current_pages.last

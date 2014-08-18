@@ -50,8 +50,17 @@ module Analyzer
       !!(/。$/.match line_text or /！$/.match line_text)  
     end
 
-    def is_pic_desctription? line
+    def is_end_paragraph? line
+      size = line.columns.first.font_size*5
+      return unless is_end_lines?(line) 
+      if line.begin_position > @file_configs[:first_children_end]
+        return true if line.end_position < @file_configs[:second_children_end] - size
+      end
+      return true if line.end_position < @file_configs[:first_children_end] - size
+      return false
+    end
 
+    def is_pic_desctription? line
       /^图[0-9]+/.match line.line_text.gsub(' ', '') and not is_end_lines? line
     end
 
@@ -62,6 +71,32 @@ module Analyzer
     def is_bold_font? line
       max_size = line.columns.map(&:font_size).max
       max_size  == @file_configs[:bold_font_size] and (! is_end_lines? line)
+    end
+
+    def get_format_text text
+      if is_catalog_line? text
+        text = get_catalog_info_for_minus(text.split('…')[0]) + "\n"
+      end
+
+      if /^–/.match text
+        text = text.sub('–', '- ')
+      end
+
+      text = text.gsub("*", "\\*")
+      text
+    end
+
+    def get_catalog_info_for_minus text
+      #-转向信号灯和远光灯............... 将 - 号 后面添加一个空格
+      origin_text = text
+      begin
+        minuses.each do |t|
+          text = text.split('..').first.sub(t, '- ')
+        end
+      rescue Exception => e
+        text = origin_text
+      end
+      return text
     end
   end
 end

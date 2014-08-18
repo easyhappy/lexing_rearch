@@ -1,12 +1,13 @@
 module Analyzer
   class CatalogNode
-    attr_accessor :name, :number, :children, :parent, :lines
+    attr_accessor :name, :number, :children, :parent, :lines, :is_writed
     def initialize name, number=-1
       @name = name.strip
       @number = number.to_i
       @children = []
       @lines = []
       @parent = nil
+      @is_writed = false
     end
 
     def << line

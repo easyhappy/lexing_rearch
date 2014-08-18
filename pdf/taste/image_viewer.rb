@@ -26,7 +26,7 @@ get '/' do
     'Audi+MMI+Navigation+plus+mit+RSE(D4)_cn.pdf', 'Audi+Q5_cn.pdf', 
     'Audi+Q7_cn.pdf']
 =end
-  @files = ['Audi+A4L+B8_cn.pdf','Audi+A8+D4_cn.pdf']
+  @files = ['Audi+A4L+B8_cn.pdf','Audi+A8+D4_cn.pdf',  'Audi+A6L+C7_cn.pdf']
   file = @files[params[:file].to_i]
   base_path = './public/images/'
   path = "#{file.split('.')[0]}.htm"

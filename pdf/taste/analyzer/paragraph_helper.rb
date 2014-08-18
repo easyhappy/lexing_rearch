@@ -70,6 +70,7 @@ module Analyzer
       current_line = @current_page.lines[@current_index]
       while true
         next_line = get_current_line @current_index+1
+        break if is_end_paragraph? current_line
         break unless next_line
         break if next_line.type == :image
         if is_same_garagraph? next_line.height, current_line.height

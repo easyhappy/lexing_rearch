@@ -25,7 +25,7 @@ module Analyzer
       if catalog.children.empty?
         output_lines_to_db catalog, configs 
         output_catalog_to_db catalog, configs
-        output_to_db catalog, configs
+        #output_to_db catalog, configs
 
         output_to_file catalog, configs
         return
@@ -108,19 +108,6 @@ module Analyzer
       text.join(' ').strip
     end
 
-    def get_catalog_info_for_minus text
-      #-转向信号灯和远光灯............... 将 - 号 后面添加一个空格
-      origin_text = text
-      begin
-        minuses.each do |t|
-          text = text.split('..').first.sub(t, '- ')
-        end
-      rescue Exception => e
-        text = origin_text
-      end
-      return text
-    end
-
     def is_begin_with_minus? line
       minuses.each do |t|
         return true if /^#{t}/.match line.line_text
@@ -134,6 +121,7 @@ module Analyzer
 
     def output_catalog_to_db catalog, configs
       return unless configs[:save_db]
+      return unless catalog.is_writed
       unless catalog.parent
         Section.find_or_create_by :title => catalog.name, :car_line => @car_line
       else
@@ -144,8 +132,9 @@ module Analyzer
 
     def output_to_file catalog, configs
       return if catalog.lines.empty?
+      return unless catalog.is_writed
       @markdown_file.write find_catalog_names(catalog) + "\n"
-      catalog.lines[1..-1].each do |line|
+      catalog.lines.each do |line|
         if line.is_a? PageParagraph
           @markdown_file.write(line.to_s)
         else
@@ -179,11 +168,13 @@ module Analyzer
 
     def output_to_db catalog, configs
       return unless configs[:save_db]
+      return unless catalog.is_writed
       cs = find_catalog_history catalog
     end
 
     def output_lines_to_db catalog, configs
       return unless configs[:save_db]
+      return unless catalog.is_writed
       return if catalog.lines.empty?
       parent = Section.find_or_create_by :title => catalog.parent.name, :car_line => @car_line
       section = Section.find_or_create_by :title => catalog.name, :parent => parent
@@ -198,6 +189,7 @@ module Analyzer
 
     def output_catalog_to_file catalog
       if catalog.children.empty?
+        return unless catalog.is_writed
         @catalogs_file.write "#{catalog.absolute_names}\n"
       end
 

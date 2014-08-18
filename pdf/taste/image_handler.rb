@@ -25,7 +25,7 @@ class ImageHandler
         if line.include?("><img")
           doc = Nokogiri::HTML(line)
           #获取div top 和left值
-          styles = doc.css('div')[0].attributes['style'].value.split(';').map do |l| l.split(':').map(&:strip) end.to_h
+          styles = Hash[doc.css('div')[0].attributes['style'].value.split(';').map do |l| l.split(':').map(&:strip) end]
           top    = styles["top"].sub('px', '').to_i
           left   = styles['left'].sub('px', '').to_i
           image  = doc.css('div img')[0].attributes['src'].value
@@ -36,12 +36,6 @@ class ImageHandler
           @images[page_number] = []
         end
       end
-    end
-  end
-
-  def output
-    @images.each do |index, imgs|
-      next if imgs.empty?≈
     end
   end
 
