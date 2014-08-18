@@ -11,13 +11,17 @@ require 'analyzer/pdf_catalog'
 require 'analyzer/catalog_node'
 require 'analyzer/page_paragraph'
 require 'analyzer/markdown'
+require 'analyzer/paragraph_helper'
 require 'active_record'
 require 'mysql2'
 require 'redcarpet'
 
+
 class PdfAnalyzer
   include Analyzer::PdfCatalog
   include Analyzer::Markdown
+  include Analyzer::ParagraphHelper
+
   def initialize(file_name)
     @file_name = file_name
     load_configs
@@ -40,24 +44,21 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    begin_number = 85
-    @total_number = 95
+    begin_number = 38
+    @total_number = 40
 
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
       @current_page = page
+      remove_noise_right_bar_data_for_page
       @current_number = number
       @current_garaprah = nil
       @current_index = 0
+
       while true
-        line = @current_page.lines[@current_index]
-        #binding.pry
-        
-        line = remove_noise_right_bar_data line
-        
+        line = get_current_line @current_index
         unless line
-          #输出 @current_garaprah
           break
         end
         @current_index += 1 and next if is_page_head? line
@@ -99,41 +100,6 @@ class PdfAnalyzer
         return node.name
       end
     end
-  end
-
-  def fetch_paragraph_from_page line
-    #解析 提示、警告、环境指南等 段落
-    if @file_configs[:status].include? line.line_text
-      output_last_paragraph
-      @current_garagprah = PageParagraph.new @current_page, @current_index, :table, @file_configs
-      @current_index += 1
-      @current_garagprah << @current_index
-      line = @current_page.lines[@current_index]
-      while true
-        next_line = @current_page.lines[@current_index+1]
-        break unless next_line
-        if is_page_right_bar? next_line
-          @current_index += 1
-          next
-        end
-        if is_same_garagraph? line.height, next_line.height
-          line = next_line
-          @current_index += 1
-          @current_garagprah << @current_index
-          next
-        end
-        break
-      end
-      output_last_paragraph
-    end
-  end
-
-  def output_last_paragraph
-    #Todo
-    return unless @current_garagprah
-    (@current_4_node || @current_3_node) << @current_garagprah.analyzer_lines_with_markdown_format
-
-    @current_garagprah = nil
   end
 
   def analyze_pdf_catalogs
@@ -348,6 +314,30 @@ class PdfAnalyzer
       end
     end
     return line
+  end
+
+  def remove_noise_right_bar_data_for_page
+    delete_lines = []
+    @current_page.lines.each_with_index do |line, index|
+      next if line.type == :image
+      if line.begin_position > @file_configs[:second_children_begin] - 5
+        new_columns = []
+        line.columns.each do |col|
+          new_columns << col unless same_rank? col.last_position, @file_configs[:noise_right_side_begin], 5
+        end
+        unless new_columns.empty?
+          line.columns = new_columns
+          line.begin_position = new_columns.first.begin_position 
+          line.end_position = new_columns.last.last_position
+        else
+          delete_lines << index
+        end
+      end
+    end
+
+    delete_lines.reverse.each do |index|
+      @current_page.lines.delete_at index
+    end
   end
 
   def is_page_footer? line

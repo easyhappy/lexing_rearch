@@ -10,9 +10,9 @@ module Analyzer
     def output_to_markdown_file main_catalogs, file_name, configs
       find_car_line configs
       @markdown_file = File.new(file_name.split('.pdf')[0] + '.md', 'w')
-      #main_catalogs[1..-1].each do |catalog|
-      #  output_leaf_nodes catalog, configs
-      #end
+      main_catalogs[1..-1].each do |catalog|
+        output_leaf_nodes catalog, configs
+      end
 
       #return unless file_is_A6?
       @catalogs_file = File.new(file_name.split('.pdf')[0] + '_catalogs.txt', 'w')
@@ -26,13 +26,14 @@ module Analyzer
         output_lines_to_db catalog, configs 
         output_catalog_to_db catalog, configs
         output_to_db catalog, configs
+
         output_to_file catalog, configs
         return
       end
 
       catalog.children.each do |node|
         output_catalog_to_db catalog, configs
-        output_leaf_nodes  node, configs
+        output_leaf_nodes node, configs
       end
     end
 
@@ -144,10 +145,15 @@ module Analyzer
     def output_to_file catalog, configs
       return if catalog.lines.empty?
       @markdown_file.write find_catalog_names(catalog) + "\n"
-      catalog.lines.each do |line|
-        @markdown_file.write("\n") and next if line == :new_line
-        @markdown_file.write(line + "\n")
+      catalog.lines[1..-1].each do |line|
+        if line.is_a? PageParagraph
+          @markdown_file.write(line.to_s)
+        else
+          @markdown_file.write(line)
+        end
+        @markdown_file.write("\n")
       end
+      
       @markdown_file.write('-'*60 + "\n")
     end
 

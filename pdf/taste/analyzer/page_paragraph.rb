@@ -24,18 +24,39 @@ class PageParagraph
 
   def to_s
     @line_indexes.map do |index|
-      @current_page.lines[index].line_text
-    end.join("\n")
+      line = @current_page.lines[index]
+      line.type == :image ? line.path : line.line_text
+    end.join("\n") + "\n"
   end
 
   def analyzer_lines_with_markdown_format
     case @type
     when :table
       return analyzer_table_lines
+    when :image
+      return self
+    when :common
+      return analyzer_common_lines
     end
   end
 
   private
+
+  def analyzer_common_lines
+    if @line_indexes.size == 1
+      line =  @current_page.lines[@line_indexes[0]]
+      if is_catalog_destription? line
+        return  "<small>#{line.line_text}</small>\n"
+      end
+
+      #识别加粗 语句
+      if is_bold_font? line
+        return "**#{line.line_text}**\n"
+      end
+    end
+    @line_indexes.map {|index| @current_page.lines[index].line_text }.join('') + "\n"
+  end
+
   def analyzer_table_lines
     lines = []
     line = @current_page.lines[@line_indexes[0]]

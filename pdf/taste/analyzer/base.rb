@@ -4,6 +4,11 @@ module Analyzer
       (h1-h2).abs < abs
     end
 
+    def get_current_line index
+      line = @current_page.lines[index]
+      line = remove_noise_right_bar_data line
+    end
+
     def is_degist? text
       /^[0-9]+$/.match text
     end
@@ -37,12 +42,26 @@ module Analyzer
     end
 
     def is_same_garagraph? h1, h2
-      (h1-h2+0.5).abs.to_i == @file_configs[:same_garagraph_distance]
+      ((h1-h2).abs+0.5).to_i == @file_configs[:same_garagraph_distance]
     end
 
     def is_end_lines? line
       line_text = line.line_text
-      (/。$/.match line_text or /！$/.match line_text)  
+      !!(/。$/.match line_text or /！$/.match line_text)  
+    end
+
+    def is_pic_desctription? line
+
+      /^图[0-9]+/.match line.line_text.gsub(' ', '') and not is_end_lines? line
+    end
+
+    def is_catalog_destription? line
+      line.columns.size == 1 and /^适用于/.match line.to_s and line.columns.first.font_size == @file_configs[:catalog_destription_size]
+    end
+
+    def is_bold_font? line
+      max_size = line.columns.map(&:font_size).max
+      max_size  == @file_configs[:bold_font_size] and (! is_end_lines? line)
     end
   end
 end
