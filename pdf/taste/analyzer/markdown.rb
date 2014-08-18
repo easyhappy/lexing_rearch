@@ -37,64 +37,6 @@ module Analyzer
       end
     end
 
-    def add_line_to_node node, line, page, configs
-      if line.type == :image
-        begin
-          pic_name = line.path.split(".")[0]
-        rescue Exception => e
-        end
-        old_path = File.join("./public/images/", line.path)
-        new_path = File.join("./public/dealed_images", pic_name +".jpg")
-        system "convert #{old_path} #{new_path}"
-
-        file = File.new(new_path)
-        md5  = Digest::MD5.hexdigest(file.read)
-        picture = Picture.find_by_md5(md5)
-        path = line.path
-        unless configs[:pic_force_save]
-          if configs[:pic_save]
-            if picture
-              path = picture.image_url
-            else 
-              p = Picture.create(:caption => pic_name, :image => file, :md5 => md5)
-              path = p.image_url    
-            end
-          end
-        else
-          p = Picture.create(:caption => pic_name, :image => file, :md5 => md5)
-          path = p.image_url
-        end
-
-        node << "\n"
-        node << "![#{pic_name}](#{path})"
-
-        return
-      end
-      if page.page_types.include?(:catalog)
-        if /^A/.match line.line_text
-          node << "\n"
-          node << get_catalog_info(line)
-          return
-        elsif is_begin_with_minus? line
-          node << get_catalog_info_for_minus(line.line_text)
-          return
-        elsif /\.\./.match line.line_text
-          node << line.line_text.split('..')[0]
-          return
-        end
-      end
-
-      if is_catalog_line? line.line_text
-        if file_is_A6?
-          node << "\n"
-          node << get_catalog_info_for_minus(line.line_text.split('…')[0])
-          return
-        end
-      end
-      node << "\n"
-      node << get_catalog_info_for_minus(line.line_text)
-    end
-
     private
     def get_catalog_info line
       text = []
