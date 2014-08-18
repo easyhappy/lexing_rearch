@@ -44,7 +44,7 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    begin_number = 38
+    #begin_number = 38
     @total_number = 40
 
     (begin_number..@total_number).each do |number|
@@ -317,6 +317,7 @@ class PdfAnalyzer
   end
 
   def remove_noise_right_bar_data_for_page
+    return unless file_is_A6?
     delete_lines = []
     @current_page.lines.each_with_index do |line, index|
       next if line.type == :image
