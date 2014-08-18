@@ -9,6 +9,7 @@ require 'active_support/all'
 require 'page_analyzer'
 require 'analyzer/pdf_catalog'
 require 'analyzer/catalog_node'
+require 'analyzer/page_paragraph'
 require 'analyzer/markdown'
 require 'active_record'
 require 'mysql2'
@@ -39,28 +40,41 @@ class PdfAnalyzer
     @current_2_catalog_index = 0
     @current_3_node          = nil
     @current_4_node          = nil
-    begin_number = 30
-    @total_number = 55
+    begin_number = 85
+    @total_number = 95
+
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number
       page_title = find_page_title page
       @current_page = page
       @current_number = number
-      page.lines.each_with_index do |line, index|
-        @current_index = index
-        #binding.pry if number == 132
-        next if is_page_head? line
-        next if is_page_title? line
-        next if is_page_footer? line
-        next if is_page_right_bar? line
-        next if content_is_title? line
-        next if set_current_3_node line
-        next if set_current_4_node line
+      @current_garaprah = nil
+      @current_index = 0
+      while true
+        line = @current_page.lines[@current_index]
+        #binding.pry
+        
+        line = remove_noise_right_bar_data line
+        
+        unless line
+          #输出 @current_garaprah
+          break
+        end
+        @current_index += 1 and next if is_page_head? line
+        @current_index += 1 and next if is_page_title? line
+        @current_index += 1 and next if is_page_footer? line
+        @current_index += 1 and next if is_page_right_bar? line
+        @current_index += 1 and next if content_is_title? line
+        @current_index += 1 and next if set_current_3_node line
+        @current_index += 1 and next if set_current_4_node line
         unless @current_3_node
           @current_3_node = all_second_level_nodes[@current_2_catalog_index].children.first
         end
         #binding.pry if index >= 11
-        add_line_to_node @current_4_node || @current_3_node, line, page, @file_configs
+        fetch_paragraph_from_page line
+        #add_line_to_node @current_4_node || @current_3_node, line, page, @file_configs
+
+        @current_index += 1
       end
       puts "number is completed : #{number}"
       #binding.pry
@@ -85,6 +99,41 @@ class PdfAnalyzer
         return node.name
       end
     end
+  end
+
+  def fetch_paragraph_from_page line
+    #解析 提示、警告、环境指南等 段落
+    if @file_configs[:status].include? line.line_text
+      output_last_paragraph
+      @current_garagprah = PageParagraph.new @current_page, @current_index, :table, @file_configs
+      @current_index += 1
+      @current_garagprah << @current_index
+      line = @current_page.lines[@current_index]
+      while true
+        next_line = @current_page.lines[@current_index+1]
+        break unless next_line
+        if is_page_right_bar? next_line
+          @current_index += 1
+          next
+        end
+        if is_same_garagraph? line.height, next_line.height
+          line = next_line
+          @current_index += 1
+          @current_garagprah << @current_index
+          next
+        end
+        break
+      end
+      output_last_paragraph
+    end
+  end
+
+  def output_last_paragraph
+    #Todo
+    return unless @current_garagprah
+    (@current_4_node || @current_3_node) << @current_garagprah.analyzer_lines_with_markdown_format
+
+    @current_garagprah = nil
   end
 
   def analyze_pdf_catalogs
@@ -244,20 +293,21 @@ class PdfAnalyzer
     if line.columns.first.font_size == @file_configs[:catalog_4_content_size] \
       and is_desription_for_4_level_node? @current_page.lines[@current_index+1]
       return false if @current_4_node and @current_4_node.lines.empty?
+          #去除最右边的 边栏数据
+      if line.begin_position > @file_configs[:second_children_begin] - 5
+        new_columns = []
+        line.columns.each do |col|
+          new_columns << col unless same_rank? col.last_position, @file_configs[:noise_right_side_begin], 5
+        end
+        line.columns = new_columns
+      end
+
       @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
       @current_3_node.children << @current_4_node
       @current_4_node.parent = @current_3_node
     end
 
     return false if text_include_special_symbol? line.line_text
-    #去除最右边的 边栏数据
-    if line.begin_position > @file_configs[:second_children_begin] - 5
-      new_columns = []
-      line.columns.each do |col|
-        new_columns << col unless same_rank? col.last_position, @file_configs[:noise_right_side_begin], 5
-      end
-      line.columns = new_columns
-    end
 
     #根据结束位置 判断是否是 4级目录
     return false if same_rank?(line.end_position, @file_configs[:first_children_end])
@@ -276,6 +326,28 @@ class PdfAnalyzer
       return true
     end
     return false
+  end
+
+  def remove_noise_right_bar_data line
+    return unless line
+    return line if line.type == :image
+    return line unless file_is_A6? 
+    #去除最右边的 边栏数据
+    if line.begin_position > @file_configs[:second_children_begin] - 5
+      new_columns = []
+      line.columns.each do |col|
+        new_columns << col unless same_rank? col.last_position, @file_configs[:noise_right_side_begin], 5
+      end
+      unless new_columns.empty?
+        line.columns = new_columns
+        line.begin_position = new_columns.first.begin_position 
+        line.end_position = new_columns.last.last_position
+      else
+        @current_index += 1
+        line = remove_noise_right_bar_data @current_page.lines[@current_index]  
+      end
+    end
+    return line
   end
 
   def is_page_footer? line

@@ -35,5 +35,14 @@ module Analyzer
     def is_special_4_level_node? line
       ["SET  （设置）按钮", "自动运行模式  AUTO", "打开/关闭制冷设备  AC  （空调自动运行）"].include? line.line_text
     end
+
+    def is_same_garagraph? h1, h2
+      (h1-h2+0.5).abs.to_i == @file_configs[:same_garagraph_distance]
+    end
+
+    def is_end_lines? line
+      line_text = line.line_text
+      (/。$/.match line_text or /！$/.match line_text)  
+    end
   end
 end
