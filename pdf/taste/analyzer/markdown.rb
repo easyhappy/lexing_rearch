@@ -1,4 +1,4 @@
-require 'models/connect_mysql'
+
 require 'models/car_line'
 require 'models/car_make'
 require 'models/car_model'

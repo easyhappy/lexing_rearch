@@ -24,10 +24,17 @@ class PdfAnalyzer
   include Analyzer::ParagraphHelper
 
   def initialize(file_name)
+    
+
     @file_name = file_name
     load_configs
     #过多的解析同一个pdf， 会导致这个pdf文件损坏， 所以每次都copy一个新的pdf
     FileUtils.cp("../test/#{@file_name}", 'demo.pdf')
+    if @file_configs[:is_production]
+      require 'models/connect_remote_mysql' 
+    else
+      require 'models/connect_mysql'
+    end
   end
 
   def load_configs
