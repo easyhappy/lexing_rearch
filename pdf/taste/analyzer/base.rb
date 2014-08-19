@@ -4,8 +4,8 @@ module Analyzer
       'A' => '![hong_a](http://pdf-image.qiniudn.com/uploads%2Fa2f1874ddb9041a35de0531ef9474194a0d791ad.png)',
       'B' => '![hong_b](http://pdf-image.qiniudn.com/uploads%2Fca789954c1e637f4a205a8bcf27676e7eb675a97.png)',
       'C' => '![hong_c](http://pdf-image.qiniudn.com/uploads%2F274da2988f210e87026700809dd03a081a7eddd1.png)',
-      'D' => '![hong_d](http://pdf-image.qiniudn.com/uploads%2F37fa5a34ef3353b151195949841fe7ac829f2539.png)'
-
+      'D' => '![hong_d](http://pdf-image.qiniudn.com/uploads%2F37fa5a34ef3353b151195949841fe7ac829f2539.png)',
+      'E' => '![hong_e](http://pdf-image.qiniudn.com/uploads%2F64471920740a4ad7feab706b7fec37faeee4781b.png)'
     }
     def strict_same_line? h1, h2, abs=5
       (h1-h2).abs < abs
@@ -96,7 +96,7 @@ module Analyzer
       end
 
       if /图 [0-9]+/.match text
-        text = text.gsub "图 ", "图"
+        text = text.gsub "图 ", "=>图"
       end
 
       text = get_format_text_for_A6 text 
@@ -105,7 +105,7 @@ module Analyzer
 
     def get_format_text_for_A6 text
       SPECAIL_SUB.each do |key, value|
-        if text.include?("  #{key}")
+        if text.include?("  #{key}") or text.include?("#{key}  ")
           text = text.gsub("  #{key}", "#{key}")
           text = text.gsub("#{key}  ", "#{key}")
           text = text.gsub("#{key}", value)

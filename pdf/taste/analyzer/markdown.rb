@@ -76,7 +76,10 @@ module Analyzer
       return if catalog.lines.empty?
       return unless catalog.is_writed
       @markdown_file.write find_catalog_names(catalog) + "\n"
-      catalog.lines.each do |line|
+      catalog.lines.each_with_index do |line, index|
+        if index == 0 and line.line_text.gsub(' ', '') == catalog.name.gsub(' ', '')
+          next
+        end
         if line.is_a? PageParagraph
           @markdown_file.write(line.to_s)
         else
