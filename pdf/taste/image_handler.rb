@@ -28,6 +28,10 @@ class ImageHandler
           styles = Hash[doc.css('div')[0].attributes['style'].value.split(';').map do |l| l.split(':').map(&:strip) end]
           top    = styles["top"].sub('px', '').to_i
           left   = styles['left'].sub('px', '').to_i
+          width  = styles['width'].sub('px', '').to_i
+          if width < 30
+            next
+          end
           image  = doc.css('div img')[0].attributes['src'].value
           @images[page_number] << (ImageColumn.new image, top, left)  
         end
