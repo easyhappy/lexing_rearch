@@ -58,7 +58,7 @@ class PdfAnalyzer
     @current_3_node          = nil
     @current_4_node          = nil
     #begin_number = 38
-    @total_number = 25
+    @total_number = 40
 
     (begin_number..@total_number).each do |number|
       page = analyze_one_page number

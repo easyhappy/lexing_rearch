@@ -9,7 +9,8 @@ class PageParagraph
     '提示' => '|![PDF5](http://pdf-image.qiniudn.com/uploads%2F7591f933980f08842ac98f9b00083c5a77ec3689.png)提示|',
     '警告' => '|![PDF2](http://pdf-image.qiniudn.com/uploads%2Ff26c6d59bf221a1937b45d7f85a5d8a09761f385.png)警告|',
     '小心' => '|![PDF3](http://pdf-image.qiniudn.com/uploads%2Fdee41f7fb4a72fbefd79dd1019039c85f4e227f4.png)小心|',
-    '环境保护指南' => '|![PDF4](http://pdf-image.qiniudn.com/uploads%2Fbf1d656bc4b9f15a1695b7b71e789d98ecba1755.png)环境保护指南|'
+    '环境保护指南' => '|![PDF4](http://pdf-image.qiniudn.com/uploads%2Fbf1d656bc4b9f15a1695b7b71e789d98ecba1755.png)环境保护指南|',
+    '环保指南'    => "|![huan_jing_baohu](http://pdf-image.qiniudn.com/uploads%2F3025e314fcc1b6d49d62aca554f1fb98c78a02c4.png)环保指南|"
   }
 
   def initialize page, begin_index, type, file_configs
@@ -96,6 +97,7 @@ class PageParagraph
     picture = Picture.find_by_md5(md5)
     path = line.path
     if picture
+      path = picture.image_url
       if @file_configs[:pic_force_save]
         picture.image = file
         picture.save
@@ -108,7 +110,7 @@ class PageParagraph
       end
     end
     pic_info = "![#{pic_name}](#{path})\n"
-    [pic_info, @current_page.lines[@line_indexes[1]]].join("\n") + "\n"
+    [pic_info, @current_page.lines[@line_indexes[1]].line_text.sub(' ', '')].join("\n") + "\n"
   end
 
 end

@@ -9,7 +9,6 @@ require 'linguo'
 require 'fileutils'
 require 'sinatra/static_assets'
 
-require 'image_analyzer'
 require 'page_helpers/page_extension'
 require 'page_helpers/page'
 require 'page_helpers/page_line'
