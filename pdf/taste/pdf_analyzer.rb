@@ -290,6 +290,7 @@ class PdfAnalyzer
       @current_4_node.is_writed = true
       @current_3_node.children << @current_4_node
       @current_4_node.parent = @current_3_node
+      return true
     end
 
     return false if text_include_special_symbol? line.line_text

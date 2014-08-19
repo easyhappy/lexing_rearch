@@ -95,8 +95,12 @@ module Analyzer
         text = text.gsub(/[0-9]+页/, '').strip
       end
 
-      if /图 [0-9]+/.match text
+      if /\*+图 [0-9]+/.match text
         text = text.gsub "图 ", "=>图"
+      end
+
+      if /^图 [0-9]+/.match text
+        text = text.gsub "图 ", "图"
       end
 
       text = get_format_text_for_A6 text 
