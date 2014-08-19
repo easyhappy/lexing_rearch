@@ -82,7 +82,10 @@ module Analyzer
 
     def get_format_text text
       if is_catalog_line? text
-        text = get_catalog_info_for_minus(text.split('…')[0]) + "  \n"
+        begin
+          text = get_catalog_info_for_minus(text.split('…')[0]) + "  \n"
+        rescue Exception => e 
+        end
       end
 
       if /^–/.match text

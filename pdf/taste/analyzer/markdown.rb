@@ -26,7 +26,6 @@ module Analyzer
         output_lines_to_db catalog, configs 
         output_catalog_to_db catalog, configs
         #output_to_db catalog, configs
-
         output_to_file catalog, configs
         return
       end
@@ -65,10 +64,16 @@ module Analyzer
       return unless configs[:save_db]
       return unless catalog.is_writed
       unless catalog.parent
-        Section.find_or_create_by :title => catalog.name, :car_line => @car_line
+        @first_level = Section.find_or_create_by :title => catalog.name, :car_line => @car_line, :parent_id => nil
       else
-        parent = Section.find_or_create_by :title => catalog.parent.name, :car_line => @car_line
-        Section.find_or_create_by :title => catalog.name, :parent => parent
+        case catalog.is_level
+        when 2
+          @second_level = Section.find_or_create_by :title => catalog.name, :parent => @first_level, :car_line => @car_line
+        when 3
+          @third_level = Section.find_or_create_by :title => catalog.name, :parent => @second_level, :car_line => @car_line
+        when 4
+          @4_level = Section.find_or_create_by :title => catalog.name, :parent => @third_level, :car_line => @car_line
+        end
       end
     end
 
@@ -121,8 +126,13 @@ module Analyzer
       return unless configs[:save_db]
       return unless catalog.is_writed
       return if catalog.lines.empty?
-      parent = Section.find_or_create_by :title => catalog.parent.name, :car_line => @car_line
-      section = Section.find_or_create_by :title => catalog.name, :parent => parent
+
+      case catalog.is_level
+      when 3
+        section = Section.find_by :title => catalog.name, :parent => @second_level, :car_line => @car_line
+      when 4
+        section = Section.find_by :title => catalog.name, :parent => @third_level, :car_line => @car_line
+      end
       section.description = catalog.lines.join("\n")
       section.save
     end
