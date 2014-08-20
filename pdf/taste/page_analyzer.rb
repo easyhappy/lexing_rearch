@@ -14,7 +14,7 @@ require 'page_helpers/page'
 require 'page_helpers/page_line'
 require 'page_helpers/image_line'
 require 'page_helpers/content_column'
-require 'image_handler'
+require 'page_helpers/image_handler'
 
 class PageAnalyzer
   attr_accessor :file_name, :current_pages, :current_page, :max_width, :pdf_reader, :current_children_page_number, :total_number
@@ -564,10 +564,10 @@ get '/' do
   #@images = analyzer.analyzer_image_with_number page_number.to_i
   base_path = './public/images'
   path = "#{file.split('.')[0]}.htm"
-  handler = ImageHandler.new(base_path, path)
-  handler.run
+  #handler = ImageHandler.new(base_path, path)
+  #handler.run
 
-  analyzer.merge_images_and_text handler.page_image(page_number.to_i-1)
+  #analyzer.merge_images_and_text handler.page_image(page_number.to_i-1)
   analyzer.analyze_page_type analyzer.current_pages.last
   @first_page = analyzer.current_pages.first
   @current_page = analyzer.current_page

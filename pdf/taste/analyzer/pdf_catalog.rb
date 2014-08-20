@@ -54,7 +54,8 @@ module Analyzer
     def all_second_level_nodes
       return @second_level_nodes if @second_level_nodes
       nodes = []
-      @main_catalogs[1..-1].each do |catalog_node|
+      ###############!!!!!!#########
+      @main_catalogs[2..-1].each do |catalog_node|
         nodes << catalog_node.children
       end
       @second_level_nodes = nodes.flatten

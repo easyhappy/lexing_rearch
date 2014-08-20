@@ -23,8 +23,8 @@ module Analyzer
 
     def output_leaf_nodes catalog, configs
       if catalog.children.empty?
-        output_lines_to_db catalog, configs 
         output_catalog_to_db catalog, configs
+        output_lines_to_db catalog, configs 
         #output_to_db catalog, configs
         output_to_file catalog, configs
         return
@@ -32,6 +32,7 @@ module Analyzer
 
       catalog.children.each do |node|
         output_catalog_to_db catalog, configs
+        output_lines_to_db catalog, configs 
         output_leaf_nodes node, configs
       end
     end
@@ -72,7 +73,7 @@ module Analyzer
         when 3
           @third_level = Section.find_or_create_by :title => catalog.name, :parent => @second_level, :car_line => @car_line
         when 4
-          @4_level = Section.find_or_create_by :title => catalog.name, :parent => @third_level, :car_line => @car_line
+          @thirth_level = Section.find_or_create_by :title => catalog.name, :parent => @third_level, :car_line => @car_line
         end
       end
     end

@@ -110,7 +110,11 @@ class PageParagraph
       end
     end
     pic_info = "![#{pic_name}](#{path})\n"
+    begin
     [pic_info, @current_page.lines[@line_indexes[1]].line_text.sub(' ', '')].join("\n") + "\n"
+    rescue Exception => e
+      [pic_info, @current_page.lines[@line_indexes[0] + 1].line_text.sub(' ', '')].join("\n") + "\n"
+    end
   end
 
 end
