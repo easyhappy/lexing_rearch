@@ -100,11 +100,11 @@ class PdfAnalyzer
   def find_page_title page
     title = page.page_title
     page.lines.each do |line|
-      title = line.line_text and break if is_page_title? line
+      title = line.line_text.gsub(' ', '') and break if is_page_title? line
     end
     all_second_level_nodes.each_with_index do |node, index|
       next if @current_2_catalog_index > index
-      if title.include?(node.name)
+      if title.include?(node.name.gsub(' ', ''))
         @current_2_catalog_index = index
         unless @current_2_catalog == all_second_level_nodes[@current_2_catalog_index]
           @current_3_node = all_second_level_nodes[@current_2_catalog_index].children.first
@@ -193,7 +193,7 @@ class PdfAnalyzer
 
   def content_is_title? line
     return false if line.type == :image
-    return true if line.columns.first.font_size == @file_configs[:page_title_size] and line.line_text.include?(@current_2_catalog.name)
+    return true if line.columns.first.font_size == @file_configs[:page_title_size] and line.line_text.gsub(' ', '') == @current_2_catalog.name.gsub(' ', '')
   end
 
   def set_current_3_node line
@@ -224,6 +224,10 @@ class PdfAnalyzer
     #针对45页 三级目录 车内照明灯 和 内部照明 是同一个 目录的问题
     if @current_number == 45 and line.line_text == '内部照明'
       line.columns.first.text = '车内照明灯'
+      return set_current_3_node line
+    end
+    if @current_number == 158 and line.line_text == '电控机械式转向系统、动态转向系统*'
+      line.columns.first.text = '电控机械式转向系统， 动态转向系统*'
       return set_current_3_node line
     end
     return false
@@ -272,6 +276,19 @@ class PdfAnalyzer
     #Audi+A6L+C7_cn.pdf的 第四级node的选取
 
     return false if is_catalog_line? line.line_text
+    return false if /^[0-9]+$/.match line.line_text
+    return false if line.line_text.size == 1
+    return false if /[0-9]/.match line.line_text or /[a-zA-Z]+/.match line.line_text
+
+    @file_configs[:is_fourth_nodes].each do |text|
+      if text.gsub(' ', '') == line.line_text.gsub(' ', '')
+        @current_4_node = Analyzer::CatalogNode.new(line.line_text, -1)
+        @current_4_node.is_writed = true
+        @current_3_node.children << @current_4_node
+        @current_4_node.parent = @current_3_node
+        return true
+      end
+    end
 
     #如果 下一行是 以适用于: 文字。 那么可以认为 本行是四级目录
     if line.columns.first.font_size == @file_configs[:catalog_4_content_size] \
@@ -312,6 +329,7 @@ class PdfAnalyzer
       @current_4_node.parent = @current_3_node
       return true
     end
+
     return false
   end
 
