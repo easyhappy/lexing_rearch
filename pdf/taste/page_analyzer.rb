@@ -38,6 +38,7 @@ class PageAnalyzer
     @current_page = @current_pages[@analyze_count-1]
     analyzer_characters @characters
     
+    return
     #第二次 解析characters， 目的去掉 第一次 带来的误差
 
     @new_characters = sort_characters @characters

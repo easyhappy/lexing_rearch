@@ -51,7 +51,7 @@ Audi+A6L+C7_cn.pdf:
   catalog_4_content_size:   7  #在一个页面中， 一个3级目录文字的字体是7
   content_begin_page:       220
   content_end_page:         227
-  pic_save:                 true
+  pic_save:                 false
   save_db:                  false
   pic_force_save:           true
   is_production:            true #如果为true 存入到 服务器的db
