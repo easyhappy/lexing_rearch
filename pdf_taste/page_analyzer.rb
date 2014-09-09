@@ -32,10 +32,10 @@ get '/' do
   analyzer.analyzer_page_with_number page_number.to_i - 1
   
   #解析图片
-  @file_path = file.split('.')[0]
-  @base_path = "../data/#{@file_path}"
-  path = "#{@file_path}.htm"
-  image_handler = ImageHandler.new(@base_path, path)
+  file_path = file.split('.')[0]
+  base_path = "./public/images"
+  path = "#{file_path}.htm"
+  image_handler = ImageHandler.new(base_path, path)
   image_handler.run
   images = image_handler.page_image page_number.to_i - 1
   analyzer.merge_images_and_text images
