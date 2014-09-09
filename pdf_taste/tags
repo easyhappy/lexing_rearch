@@ -1,0 +1,193 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+<<	analyzer/catalog_node.rb	/^    def << line$/;"	f	class:Analyzer.CatalogNode
+<<	analyzer/page_paragraph.rb	/^  def << index$/;"	f	class:PageParagraph
+<<	page_helpers/content_column.rb	/^  def << char$/;"	f	class:ContentColumn
+<<	page_helpers/page.rb	/^  def << page_line$/;"	f	class:Page
+<<	page_helpers/page_line.rb	/^  def << content$/;"	f	class:PageLine
+<=>	page_helpers/page_line.rb	/^  def <=> other$/;"	f	class:PageLine
+Analyzer	analyzer/base.rb	/^module Analyzer$/;"	m
+Analyzer	analyzer/catalog_node.rb	/^module Analyzer$/;"	m
+Analyzer	analyzer/markdown.rb	/^module Analyzer$/;"	m
+Analyzer	analyzer/paragraph_helper.rb	/^module Analyzer$/;"	m
+Analyzer	analyzer/pdf_catalog.rb	/^module Analyzer$/;"	m
+Base	analyzer/base.rb	/^  module Base$/;"	m	class:Analyzer
+CarLine	models/car_line.rb	/^class CarLine < ActiveRecord::Base$/;"	c
+CarMake	models/car_make.rb	/^class CarMake < ActiveRecord::Base$/;"	c
+CarModel	models/car_model.rb	/^class CarModel < ActiveRecord::Base$/;"	c
+CatalogNode	analyzer/catalog_node.rb	/^  class CatalogNode$/;"	c	class:Analyzer
+ContentColumn	page_helpers/content_column.rb	/^class ContentColumn$/;"	c
+ExtractImages	image_analyzer.rb	/^module ExtractImages$/;"	m
+Extractor	image_analyzer.rb	/^  class Extractor$/;"	c	class:ExtractImages
+ImageColumn	image_handler.rb	/^class ImageColumn$/;"	c
+ImageHandler	image_handler.rb	/^class ImageHandler$/;"	c
+ImageLine	page_helpers/image_line.rb	/^class ImageLine$/;"	c
+ImageUploader	uploaders/image_uploader.rb	/^class ImageUploader < CarrierWave::Uploader::Base$/;"	c
+Jpg	image_analyzer.rb	/^  class Jpg$/;"	c	class:ExtractImages
+Markdown	analyzer/markdown.rb	/^  module Markdown$/;"	m	class:Analyzer
+PDF	page_helpers/page_extension.rb	/^module PDF$/;"	m
+Page	page_helpers/page.rb	/^class Page$/;"	c
+Page	page_helpers/page_extension.rb	/^    class Page$/;"	c	class:PDF.Reader
+PageAnalyzer	page_analyzer.rb	/^class PageAnalyzer$/;"	c
+PageLine	page_helpers/page_line.rb	/^class PageLine$/;"	c
+PageParagraph	analyzer/page_paragraph.rb	/^class PageParagraph$/;"	c
+ParagraphHelper	analyzer/paragraph_helper.rb	/^  module ParagraphHelper$/;"	m	class:Analyzer
+PdfAnalyzer	pdf_analyzer.rb	/^class PdfAnalyzer$/;"	c
+PdfCatalog	analyzer/pdf_catalog.rb	/^  module PdfCatalog$/;"	m	class:Analyzer
+Picture	models/picture.rb	/^class Picture < ActiveRecord::Base$/;"	c
+Raw	image_analyzer.rb	/^  class Raw$/;"	c	class:ExtractImages
+Reader	page_helpers/page_extension.rb	/^  class Reader$/;"	c	class:PDF
+Section	models/section.rb	/^class Section < ActiveRecord::Base$/;"	c
+Tiff	image_analyzer.rb	/^  class Tiff$/;"	c	class:ExtractImages
+absolute_names	analyzer/catalog_node.rb	/^    def absolute_names$/;"	f	class:Analyzer.CatalogNode
+add_line_to_node	analyzer/markdown.rb	/^    def add_line_to_node node, line, page, configs$/;"	f	class:Analyzer.Markdown
+all_second_level_nodes	analyzer/pdf_catalog.rb	/^    def all_second_level_nodes$/;"	f	class:Analyzer.PdfCatalog
+analyze_children_page_count	page_helpers/page.rb	/^  def analyze_children_page_count force=false$/;"	f	class:Page
+analyze_children_page_count_for_catalog_page	page_helpers/page.rb	/^  def analyze_children_page_count_for_catalog_page$/;"	f	class:Page
+analyze_common_paragraph	analyzer/paragraph_helper.rb	/^    def analyze_common_paragraph$/;"	f	class:Analyzer.ParagraphHelper
+analyze_goto_table	page_analyzer.rb	/^  def analyze_goto_table page$/;"	f	class:PageAnalyzer
+analyze_goto_table_for_children_page	page_analyzer.rb	/^  def analyze_goto_table_for_children_page page, line_indexes$/;"	f	class:PageAnalyzer
+analyze_image_lines	analyzer/page_paragraph.rb	/^  def analyze_image_lines$/;"	f	class:PageParagraph.to_s
+analyze_image_paragraph	analyzer/paragraph_helper.rb	/^    def analyze_image_paragraph$/;"	f	class:Analyzer.ParagraphHelper
+analyze_one_page	pdf_analyzer.rb	/^  def analyze_one_page number $/;"	f	class:PdfAnalyzer
+analyze_page_for_common_table	page_analyzer.rb	/^  def analyze_page_for_common_table page$/;"	f	class:PageAnalyzer
+analyze_page_for_table_type	page_analyzer.rb	/^  def analyze_page_for_table_type page$/;"	f	class:PageAnalyzer
+analyze_page_type	page_analyzer.rb	/^  def analyze_page_type page$/;"	f	class:PageAnalyzer
+analyze_pdf_catalogs	pdf_analyzer.rb	/^  def analyze_pdf_catalogs$/;"	f	class:PdfAnalyzer
+analyze_pdf_catalogs_for_A4	pdf_analyzer.rb	/^  def analyze_pdf_catalogs_for_A4 line$/;"	f	class:PdfAnalyzer
+analyze_pdf_catalogs_for_A6	pdf_analyzer.rb	/^  def analyze_pdf_catalogs_for_A6 line$/;"	f	class:PdfAnalyzer
+analyze_pdf_content_by_catalogs	pdf_analyzer.rb	/^  def analyze_pdf_content_by_catalogs$/;"	f	class:PdfAnalyzer
+analyze_table_paragraph	analyzer/paragraph_helper.rb	/^    def analyze_table_paragraph$/;"	f	class:Analyzer.ParagraphHelper
+analyzer_characters	page_analyzer.rb	/^  def analyzer_characters characters$/;"	f	class:PageAnalyzer.sort_characters
+analyzer_common_lines	analyzer/page_paragraph.rb	/^  def analyzer_common_lines$/;"	f	class:PageParagraph.to_s
+analyzer_image_with_number	page_analyzer.rb	/^  def analyzer_image_with_number number$/;"	f	class:PageAnalyzer.sort_characters
+analyzer_lines_with_markdown_format	analyzer/page_paragraph.rb	/^  def analyzer_lines_with_markdown_format$/;"	f	class:PageParagraph.to_s
+analyzer_page	page_analyzer.rb	/^  def analyzer_page page$/;"	f	class:PageAnalyzer
+analyzer_page_with_number	page_analyzer.rb	/^  def analyzer_page_with_number number$/;"	f	class:PageAnalyzer.sort_characters
+analyzer_table_lines	analyzer/page_paragraph.rb	/^  def analyzer_table_lines$/;"	f	class:PageParagraph.to_s
+ancestors	models/section.rb	/^  def ancestors$/;"	f	class:Section
+compile_markdown	models/section.rb	/^  def compile_markdown$/;"	f	class:Section
+complete_refs	image_analyzer.rb	/^    def complete_refs$/;"	f	class:ExtractImages.Extractor
+content_is_title?	pdf_analyzer.rb	/^  def content_is_title? line$/;"	f	class:PdfAnalyzer
+copy_attributes_without_columns	page_helpers/page_line.rb	/^  def copy_attributes_without_columns line$/;"	f	class:PageLine
+create_catalog_1_node	analyzer/pdf_catalog.rb	/^    def create_catalog_1_node line$/;"	f	class:Analyzer.PdfCatalog
+create_catalog_2_node	analyzer/pdf_catalog.rb	/^    def create_catalog_2_node line$/;"	f	class:Analyzer.PdfCatalog
+create_catalog_3_node	analyzer/pdf_catalog.rb	/^    def create_catalog_3_node line$/;"	f	class:Analyzer.PdfCatalog
+fetch_paragraph_from_page	analyzer/paragraph_helper.rb	/^    def fetch_paragraph_from_page line$/;"	f	class:Analyzer.ParagraphHelper
+file_is_A4?	pdf_analyzer.rb	/^  def file_is_A4?$/;"	f	class:PdfAnalyzer
+file_is_A6?	pdf_analyzer.rb	/^  def file_is_A6?$/;"	f	class:PdfAnalyzer
+filename	uploaders/image_uploader.rb	/^  def filename$/;"	f	class:ImageUploader
+find_and_same_height_lines	page_analyzer.rb	/^  def find_and_same_height_lines char$/;"	f	class:PageAnalyzer.sort_characters
+find_car_line	analyzer/markdown.rb	/^    def find_car_line configs$/;"	f	class:Analyzer.Markdown
+find_catalog_history	analyzer/markdown.rb	/^    def find_catalog_history catalog$/;"	f	class:Analyzer.Markdown
+find_catalog_names	analyzer/markdown.rb	/^    def find_catalog_names catalog$/;"	f	class:Analyzer.Markdown
+find_catalog_page_number	page_helpers/page.rb	/^  def find_catalog_page_number current_line$/;"	f	class:Page
+find_page_title	pdf_analyzer.rb	/^  def find_page_title page$/;"	f	class:PdfAnalyzer
+generate_new_page	page_analyzer.rb	/^  def generate_new_page page$/;"	f	class:PageAnalyzer.sort_characters
+get_catalog_info	analyzer/markdown.rb	/^    def get_catalog_info line$/;"	f	class:Analyzer.Markdown
+get_catalog_info_for_minus	analyzer/base.rb	/^    def get_catalog_info_for_minus text$/;"	f	class:Analyzer.Base
+get_catalog_name_and_number	analyzer/pdf_catalog.rb	/^    def get_catalog_name_and_number line$/;"	f	class:Analyzer.PdfCatalog
+get_char_belongs_to_which_chilren_page	page_analyzer.rb	/^  def get_char_belongs_to_which_chilren_page char_index$/;"	f	class:PageAnalyzer.sort_characters
+get_current_line	analyzer/base.rb	/^    def get_current_line index$/;"	f	class:Analyzer.Base
+get_degist	analyzer/base.rb	/^    def get_degist text$/;"	f	class:Analyzer.Base
+get_format_text	analyzer/base.rb	/^    def get_format_text text$/;"	f	class:Analyzer.Base
+height	page_helpers/page.rb	/^  def height$/;"	f	class:Page
+height	page_helpers/page_extension.rb	/^      def height$/;"	f	class:PDF.Reader.Page
+initialize	analyzer/catalog_node.rb	/^    def initialize name, number=-1$/;"	f	class:Analyzer.CatalogNode
+initialize	analyzer/page_paragraph.rb	/^  def initialize page, begin_index, type, file_configs$/;"	f	class:PageParagraph
+initialize	image_analyzer.rb	/^    def initialize count$/;"	f	class:ExtractImages.Extractor
+initialize	image_analyzer.rb	/^    def initialize(stream)$/;"	f	class:ExtractImages.Jpg
+initialize	image_analyzer.rb	/^    def initialize(stream)$/;"	f	class:ExtractImages.Raw
+initialize	image_analyzer.rb	/^    def initialize(stream)$/;"	f	class:ExtractImages.Tiff
+initialize	image_handler.rb	/^  def initialize base_path, file_name$/;"	f	class:ImageHandler
+initialize	image_handler.rb	/^  def initialize path, top, left$/;"	f	class:ImageColumn
+initialize	page_analyzer.rb	/^  def initialize(file_name)$/;"	f	class:PageAnalyzer
+initialize	page_helpers/content_column.rb	/^  def initialize(char)$/;"	f	class:ContentColumn
+initialize	page_helpers/image_line.rb	/^  def initialize path$/;"	f	class:ImageLine
+initialize	page_helpers/page.rb	/^  def initialize(page)$/;"	f	class:Page
+initialize	page_helpers/page_line.rb	/^  def initialize char, char_index, children_page_number=0$/;"	f	class:PageLine
+initialize	pdf_analyzer.rb	/^  def initialize(file_name)$/;"	f	class:PdfAnalyzer
+insert_char_to_lines	page_analyzer.rb	/^  def insert_char_to_lines char, lines, char_index$/;"	f	class:PageAnalyzer.sort_characters
+is_English_or_digest_char?	page_helpers/content_column.rb	/^  def is_English_or_digest_char?(text)$/;"	f	class:ContentColumn
+is_begin_with_minus?	analyzer/markdown.rb	/^    def is_begin_with_minus? line$/;"	f	class:Analyzer.Markdown
+is_bold_font?	analyzer/base.rb	/^    def is_bold_font? line$/;"	f	class:Analyzer.Base
+is_catalog?	page_helpers/page.rb	/^  def is_catalog?$/;"	f	class:Page
+is_catalog_destription?	analyzer/base.rb	/^    def is_catalog_destription? line$/;"	f	class:Analyzer.Base
+is_catalog_line?	analyzer/base.rb	/^    def is_catalog_line? text$/;"	f	class:Analyzer.Base
+is_degist?	analyzer/base.rb	/^    def is_degist? text$/;"	f	class:Analyzer.Base
+is_desription_for_4_level_node?	pdf_analyzer.rb	/^  def is_desription_for_4_level_node? line$/;"	f	class:PdfAnalyzer
+is_end_lines?	analyzer/base.rb	/^    def is_end_lines? line$/;"	f	class:Analyzer.Base
+is_end_paragraph?	analyzer/base.rb	/^    def is_end_paragraph? line$/;"	f	class:Analyzer.Base
+is_goto_table?	page_helpers/page.rb	/^  def is_goto_table?$/;"	f	class:Page
+is_page_footer?	pdf_analyzer.rb	/^  def is_page_footer? line$/;"	f	class:PdfAnalyzer
+is_page_head?	pdf_analyzer.rb	/^  def is_page_head? line$/;"	f	class:PdfAnalyzer
+is_page_right_bar?	pdf_analyzer.rb	/^  def is_page_right_bar? line$/;"	f	class:PdfAnalyzer
+is_page_title?	pdf_analyzer.rb	/^  def is_page_title? line$/;"	f	class:PdfAnalyzer
+is_pic_desctription?	analyzer/base.rb	/^    def is_pic_desctription? line$/;"	f	class:Analyzer.Base
+is_same_garagraph?	analyzer/base.rb	/^    def is_same_garagraph? h1, h2$/;"	f	class:Analyzer.Base
+is_special_4_level_node?	analyzer/base.rb	/^    def is_special_4_level_node? line$/;"	f	class:Analyzer.Base
+line_text	page_helpers/image_line.rb	/^  def line_text$/;"	f	class:ImageLine
+line_text	page_helpers/page_line.rb	/^  def line_text$/;"	f	class:PageLine
+load_configs	pdf_analyzer.rb	/^  def load_configs$/;"	f	class:PdfAnalyzer
+merge_catalog_page_lines	page_analyzer.rb	/^  def merge_catalog_page_lines$/;"	f	class:PageAnalyzer.sort_characters
+merge_images_and_text	page_analyzer.rb	/^  def merge_images_and_text images$/;"	f	class:PageAnalyzer.sort_characters
+merge_page_lines	page_analyzer.rb	/^  def merge_page_lines$/;"	f	class:PageAnalyzer.sort_characters
+merge_page_table_lines	analyzer/page_paragraph.rb	/^  def merge_page_table_lines indexes$/;"	f	class:PageParagraph.to_s
+minuses	analyzer/markdown.rb	/^    def minuses$/;"	f	class:Analyzer.Markdown
+new_page_line	page_analyzer.rb	/^  def new_page_line char, char_index$/;"	f	class:PageAnalyzer.sort_characters
+output_catalog_to_db	analyzer/markdown.rb	/^    def output_catalog_to_db catalog, configs$/;"	f	class:Analyzer.Markdown
+output_catalog_to_file	analyzer/markdown.rb	/^    def output_catalog_to_file catalog$/;"	f	class:Analyzer.Markdown
+output_last_paragraph	analyzer/paragraph_helper.rb	/^    def output_last_paragraph$/;"	f	class:Analyzer.ParagraphHelper
+output_leaf_nodes	analyzer/markdown.rb	/^    def output_leaf_nodes catalog, configs$/;"	f	class:Analyzer.Markdown
+output_lines_to_db	analyzer/markdown.rb	/^    def output_lines_to_db catalog, configs$/;"	f	class:Analyzer.Markdown
+output_to_db	analyzer/markdown.rb	/^    def output_to_db catalog, configs$/;"	f	class:Analyzer.Markdown
+output_to_file	analyzer/markdown.rb	/^    def output_to_file catalog, configs$/;"	f	class:Analyzer.Markdown
+output_to_markdown_file	analyzer/markdown.rb	/^    def output_to_markdown_file main_catalogs, file_name, configs$/;"	f	class:Analyzer.Markdown
+page	image_analyzer.rb	/^    def page(page)$/;"	f	class:ExtractImages.Extractor
+page_image	image_handler.rb	/^  def page_image page_number$/;"	f	class:ImageHandler.run
+process_page	image_analyzer.rb	/^    def process_page(page, count)$/;"	f	class:ExtractImages.Extractor
+remove_noise_right_bar_data	pdf_analyzer.rb	/^  def remove_noise_right_bar_data line$/;"	f	class:PdfAnalyzer
+remove_noise_right_bar_data_for_page	pdf_analyzer.rb	/^  def remove_noise_right_bar_data_for_page$/;"	f	class:PdfAnalyzer
+run	image_handler.rb	/^  def run$/;"	f	class:ImageHandler
+run	page_analyzer.rb	/^  def run$/;"	f	class:PageAnalyzer.sort_characters
+run	pdf_analyzer.rb	/^  def run$/;"	f	class:PdfAnalyzer
+same_line?	page_analyzer.rb	/^  def same_line? h1, h2$/;"	f	class:PageAnalyzer.sort_characters
+same_rank?	analyzer/base.rb	/^    def same_rank? x1, x2, abs=3$/;"	f	class:Analyzer.Base
+same_rank?	page_analyzer.rb	/^  def same_rank? w1, w2$/;"	f	class:PageAnalyzer.sort_characters
+save	image_analyzer.rb	/^    def save(filename)$/;"	f	class:ExtractImages.Jpg
+save	image_analyzer.rb	/^    def save(filename)$/;"	f	class:ExtractImages.Raw
+save	image_analyzer.rb	/^    def save(filename)$/;"	f	class:ExtractImages.Tiff
+save_cmyk	image_analyzer.rb	/^    def save_cmyk(filename, data=nil)$/;"	f	class:ExtractImages.Raw
+save_gray	image_analyzer.rb	/^    def save_gray(filename, local_data=nil)$/;"	f	class:ExtractImages.Jpg
+save_gray	image_analyzer.rb	/^    def save_gray(filename, local_data=nil)$/;"	f	class:ExtractImages.Raw
+save_group_four	image_analyzer.rb	/^    def save_group_four(filename)$/;"	f	class:ExtractImages.Tiff
+save_rgb	image_analyzer.rb	/^    def save_rgb(filename)$/;"	f	class:ExtractImages.Raw
+secure_token	uploaders/image_uploader.rb	/^  def secure_token$/;"	f	class:ImageUploader
+set_ancestor_ids	models/section.rb	/^  def set_ancestor_ids$/;"	f	class:Section
+set_car_line_id	models/section.rb	/^  def set_car_line_id$/;"	f	class:Section
+set_char_belongs_to_which_children_page	page_analyzer.rb	/^  def set_char_belongs_to_which_children_page children_page_counts, new_chars $/;"	f	class:PageAnalyzer.sort_characters
+set_current_3_node	pdf_analyzer.rb	/^  def set_current_3_node line$/;"	f	class:PdfAnalyzer
+set_current_4_node	pdf_analyzer.rb	/^  def set_current_4_node line$/;"	f	class:PdfAnalyzer
+set_current_4_node_for_A4	pdf_analyzer.rb	/^  def set_current_4_node_for_A4 line$/;"	f	class:PdfAnalyzer
+set_current_4_node_for_A6	pdf_analyzer.rb	/^  def set_current_4_node_for_A6 line$/;"	f	class:PdfAnalyzer
+set_level	models/section.rb	/^  def set_level$/;"	f	class:Section
+set_page_type	page_analyzer.rb	/^  def set_page_type$/;"	f	class:PageAnalyzer.sort_characters
+set_special_current_3_node_for_A6	pdf_analyzer.rb	/^  def set_special_current_3_node_for_A6 line$/;"	f	class:PdfAnalyzer
+sort_characters	page_analyzer.rb	/^  def sort_characters characters$/;"	f	class:PageAnalyzer
+sort_chars_by_y_and_x	page_analyzer.rb	/^  def sort_chars_by_y_and_x chars$/;"	f	class:PageAnalyzer
+store_dir	uploaders/image_uploader.rb	/^  def store_dir$/;"	f	class:ImageUploader
+strict_same_line?	analyzer/base.rb	/^    def strict_same_line? h1, h2, abs=5$/;"	f	class:Analyzer.Base
+strict_same_line?	page_analyzer.rb	/^  def strict_same_line? h1, h2$/;"	f	class:PageAnalyzer.sort_characters
+strict_same_line?	page_helpers/page.rb	/^  def strict_same_line? h1, h2$/;"	f	class:Page
+text_include_special_symbol?	analyzer/base.rb	/^    def text_include_special_symbol? text$/;"	f	class:Analyzer.Base
+text_is_goto_one_page?	page_analyzer.rb	/^  def text_is_goto_one_page? text$/;"	f	class:PageAnalyzer
+text_is_goto_table_head?	page_analyzer.rb	/^  def text_is_goto_table_head? text$/;"	f	class:PageAnalyzer
+text_receiver	page_helpers/page_extension.rb	/^      def text_receiver$/;"	f	class:PDF.Reader.Page
+to_s	analyzer/page_paragraph.rb	/^  def to_s$/;"	f	class:PageParagraph
+to_s	page_helpers/content_column.rb	/^  def to_s$/;"	f	class:ContentColumn
+width	page_helpers/page.rb	/^  def width$/;"	f	class:Page
+width	page_helpers/page_extension.rb	/^      def width$/;"	f	class:PDF.Reader.Page
