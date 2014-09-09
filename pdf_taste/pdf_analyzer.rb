@@ -7,7 +7,7 @@ require 'fileutils'
 require 'active_support/all'
 
 require 'page_analyzer'
-require 'image_handler'
+require 'page_helpers/image_handler'
 require 'analyzer/pdf_catalog'
 require 'analyzer/catalog_node'
 require 'analyzer/page_paragraph'

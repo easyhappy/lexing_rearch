@@ -9,7 +9,7 @@ require 'linguo'
 require 'fileutils'
 require 'sinatra/static_assets'
 
-require 'image_handler'
+require 'page_helpers/image_handler'
 require 'models/connect_remote_mysql'
 require 'models/picture'
 
